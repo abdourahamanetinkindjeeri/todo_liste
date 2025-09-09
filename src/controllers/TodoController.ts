@@ -11,8 +11,18 @@ export default class TodoController {
   private service: TodoService = new TodoService();
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const data = CreateSchemaTodo.parse(req.body) as Omit<Todo, "id">;
-      const todo = await this.service.create(data);
+      const data = CreateSchemaTodo.parse(req.body);
+      // Vérifie que l'utilisateur est authentifié
+      if (typeof req.userId !== "number") {
+        return res.status(401).json({ message: "Utilisateur non authentifié" });
+      }
+      // Correction : description doit être null si undefined
+      const todoData = {
+        ...data,
+        description: data.description === undefined ? null : data.description,
+        userId: req.userId,
+      };
+      const todo = await this.service.create(todoData);
       res.status(201).json({ message: "Tache ajoutée avec succès.", todo });
     } catch (err) {
       next(err);
@@ -46,11 +56,21 @@ export default class TodoController {
     try {
       const { id } = req.params;
       const data = UpdateSchemaTodo.parse(req.body);
-      if (!data) res.status(203).json({ message: "Tache mal formee..." });
+      if (!data)
+        return res.status(203).json({ message: "Tache mal formee..." });
 
-      const todo = await this.service.update(+id, data);
-      if (!todo) res.status(404).json({ message: "Tache introuvable..." });
-      res.status(200).json({ message: "Tache trouve...", data: todo });
+      const todo = await this.service.findById(+id);
+      if (!todo)
+        return res.status(404).json({ message: "Tache introuvable..." });
+      // Vérifie que l'utilisateur connecté est le créateur
+      if (todo.userId !== req.userId) {
+        return res.status(403).json({
+          message:
+            "Accès interdit : vous n'êtes pas le créateur de cette tâche.",
+        });
+      }
+      const updated = await this.service.update(+id, data);
+      res.status(200).json({ message: "Tache modifiée", data: updated });
     } catch (error) {
       next(error);
     }
@@ -59,6 +79,16 @@ export default class TodoController {
   delete = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
+      const todo = await this.service.findById(+id);
+      if (!todo)
+        return res.status(404).json({ message: "Tache introuvable..." });
+      // Vérifie que l'utilisateur connecté est le créateur
+      if (todo.userId !== req.userId) {
+        return res.status(403).json({
+          message:
+            "Accès interdit : vous n'êtes pas le créateur de cette tâche.",
+        });
+      }
       await this.service.delete(+id);
       res.status(200).json({ message: "Tache supprimée avec succès." });
     } catch (error) {

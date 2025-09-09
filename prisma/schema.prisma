@@ -26,6 +26,8 @@ model Todo {
   estAcheve Boolean @default(false)
   dateCreation DateTime @default(now())
   derniereModif DateTime @updatedAt
+  userId Int
+  user User @relation(fields: [userId], references: [id])
 }
 
 model User {
@@ -37,4 +39,5 @@ model User {
   role Role @default(USER)
   dateCreation DateTime @default(now())
   derniereModif DateTime @updatedAt
+  todos Todo[]
 }

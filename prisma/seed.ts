@@ -4,14 +4,6 @@ import bcrypt from "bcryptjs";
 const prisma = new PrismaClient();
 
 async function main() {
-  const tasks = Array.from({ length: 10 }, (_, i) => ({
-    libelle: `Tâche ${i + 1}`,
-    description: `Description de la tâche ${i + 1}`,
-    estAcheve: false,
-  }));
-  await prisma.todo.createMany({ data: tasks });
-  console.log("10 tâches ajoutées !");
-
   const passwordHash = await bcrypt.hash("admin123", 10);
   const users = [
     {
@@ -43,8 +35,30 @@ async function main() {
       role: Role.PROPRIETAIRE,
     },
   ];
-  await prisma.user.createMany({ data: users });
+  // Création des utilisateurs et récupération des IDs
+  const createdUsers = [];
+  for (const user of users) {
+    const created = await prisma.user.create({ data: user });
+    createdUsers.push(created);
+  }
   console.log("4 utilisateurs admin ajoutés !");
+
+  // Répartition des tâches (2 par utilisateur)
+  let taskIndex = 1;
+  for (const user of createdUsers) {
+    for (let i = 0; i < 2; i++) {
+      await prisma.todo.create({
+        data: {
+          libelle: `Tâche ${taskIndex}`,
+          description: `Description de la tâche ${taskIndex}`,
+          estAcheve: false,
+          userId: user.id,
+        },
+      });
+      taskIndex++;
+    }
+  }
+  console.log("8 tâches ajoutées et associées aux utilisateurs !");
 }
 
 main()

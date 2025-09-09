@@ -23,7 +23,12 @@ export default class TodoRepository
     return this.prisma.todo.findUnique({ where: { id } });
   }
 
-  async create(data: Omit<Todo, "id">): Promise<Todo> {
+  async create(data: {
+    libelle: string;
+    description: string | null;
+    estAcheve?: boolean;
+    userId: number;
+  }): Promise<Todo> {
     return this.prisma.todo.create({ data });
   }
 

@@ -18,7 +18,12 @@ export default class TodoService implements IRepository<Todo> {
   async findById(id: number): Promise<Todo | null> {
     return this.repository.findById(id);
   }
-  async create(data: Omit<Todo, "id">): Promise<Todo> {
+  async create(data: {
+    libelle: string;
+    description: string | null;
+    estAcheve?: boolean;
+    userId: number;
+  }): Promise<Todo> {
     return this.repository.create(data);
   }
   async update(id: number, data: Partial<Omit<Todo, "id">>): Promise<Todo> {
