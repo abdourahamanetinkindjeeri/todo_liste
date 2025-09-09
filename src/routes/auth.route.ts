@@ -14,6 +14,9 @@ router.post("/login", async (req: Request, res: Response) => {
   const accessPayload = {
     id: user.id,
     email: user.email,
+    prenom: user?.email,
+    nom: user.prenom,
+    role: user.role,
   };
   const refreshPayload = {
     email: user.email,
