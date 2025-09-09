@@ -27,7 +27,7 @@ router.post("/login", async (req: Request, res: Response) => {
     process.env.JWT_ACCESS_SECRET as string,
     {
       algorithm: "HS512",
-      expiresIn: "1m",
+      expiresIn: "30m",
     }
   );
   const refreshToken = jwt.sign(

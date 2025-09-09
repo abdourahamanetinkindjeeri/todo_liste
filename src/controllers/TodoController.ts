@@ -12,11 +12,9 @@ export default class TodoController {
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = CreateSchemaTodo.parse(req.body);
-      // Vérifie que l'utilisateur est authentifié
       if (typeof req.userId !== "number") {
         return res.status(401).json({ message: "Utilisateur non authentifié" });
       }
-      // Correction : description doit être null si undefined
       const todoData = {
         ...data,
         description: data.description === undefined ? null : data.description,
