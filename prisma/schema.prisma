@@ -13,12 +13,28 @@ enum Statut {
   EN_COURS
   TERMINEE
 }
+
+enum Role {
+  USER
+  PROPRIETAIRE
+}
 model Todo {
   id Int @id  @default(autoincrement())
   libelle String
   description String?
   status Statut @default(EN_COURS)
   estAcheve Boolean @default(false)
+  dateCreation DateTime @default(now())
+  derniereModif DateTime @updatedAt
+}
+
+model User {
+  id Int @id @default(autoincrement())
+  nom String
+  prenom String
+  email String @unique
+  password String
+  role Role @default(USER)
   dateCreation DateTime @default(now())
   derniereModif DateTime @updatedAt
 }
