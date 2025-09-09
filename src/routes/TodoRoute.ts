@@ -14,6 +14,8 @@ router.put("/:id/en-cours", authMiddleware, controller.marquerEnCours);
 router.put("/:id/complete", authMiddleware, controller.completeTodo);
 router.get("/:id", controller.findById);
 router.put("/:id", authMiddleware, controller.update);
+router.post("/:id/delegate", authMiddleware, controller.delegate);
 router.delete("/:id", authMiddleware, controller.delete);
+router.delete("/:id/delegate", authMiddleware, controller.removeDelegate);
 
 export default router;

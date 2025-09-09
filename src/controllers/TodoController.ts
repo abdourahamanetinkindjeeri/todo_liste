@@ -8,6 +8,66 @@ import { NextFunction, Request, Response } from "express";
 import { Status } from "../repositories/ITodoRepository";
 
 export default class TodoController {
+  removeDelegate = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const { userId: delegateUserId } = req.body;
+      if (typeof req.userId !== "number") {
+        return res.status(401).json({ message: "Utilisateur non authentifié" });
+      }
+      if (typeof delegateUserId !== "number") {
+        return res
+          .status(400)
+          .json({ message: "userId du délégué manquant ou invalide" });
+      }
+      const todo = await this.service.findById(+id);
+      if (!todo)
+        return res.status(404).json({ message: "Tâche introuvable..." });
+      if (todo.userId !== req.userId) {
+        return res
+          .status(403)
+          .json({
+            message: "Seul le propriétaire peut retirer une délégation.",
+          });
+      }
+      const { TaskDelegationRepository } = await import(
+        "../repositories/TaskDelegationRepository"
+      );
+      await TaskDelegationRepository.removeDelegation(+id, delegateUserId);
+      res.status(200).json({ message: "Délégation retirée avec succès." });
+    } catch (error) {
+      next(error);
+    }
+  };
+  delegate = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      const { userId: delegateUserId } = req.body;
+      if (typeof req.userId !== "number") {
+        return res.status(401).json({ message: "Utilisateur non authentifié" });
+      }
+      if (typeof delegateUserId !== "number") {
+        return res
+          .status(400)
+          .json({ message: "userId du délégué manquant ou invalide" });
+      }
+      const todo = await this.service.findById(+id);
+      if (!todo)
+        return res.status(404).json({ message: "Tâche introuvable..." });
+      if (todo.userId !== req.userId) {
+        return res
+          .status(403)
+          .json({ message: "Seul le propriétaire peut déléguer cette tâche." });
+      }
+      const { TaskDelegationRepository } = await import(
+        "../repositories/TaskDelegationRepository"
+      );
+      await TaskDelegationRepository.addDelegation(+id, delegateUserId);
+      res.status(201).json({ message: "Délégation ajoutée avec succès." });
+    } catch (error) {
+      next(error);
+    }
+  };
   private service: TodoService = new TodoService();
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -60,11 +120,22 @@ export default class TodoController {
       const todo = await this.service.findById(+id);
       if (!todo)
         return res.status(404).json({ message: "Tache introuvable..." });
-      // Vérifie que l'utilisateur connecté est le créateur
-      if (todo.userId !== req.userId) {
+
+      // Vérifie que l'utilisateur connecté est le créateur ou un délégué
+      if (typeof req.userId !== "number") {
+        return res.status(401).json({ message: "Utilisateur non authentifié" });
+      }
+      const { TaskDelegationRepository } = await import(
+        "../repositories/TaskDelegationRepository"
+      );
+      const isDelegate = await TaskDelegationRepository.isDelegate(
+        req.userId,
+        +id
+      );
+      if (todo.userId !== req.userId && !isDelegate) {
         return res.status(403).json({
           message:
-            "Accès interdit : vous n'êtes pas le créateur de cette tâche.",
+            "Accès interdit : vous n'êtes ni le créateur ni un utilisateur délégué pour cette tâche.",
         });
       }
       const updated = await this.service.update(+id, data);

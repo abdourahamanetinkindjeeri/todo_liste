@@ -28,6 +28,7 @@ model Todo {
   derniereModif DateTime @updatedAt
   userId Int
   user User @relation(fields: [userId], references: [id])
+  delegations TaskDelegation[]
 }
 
 model User {
@@ -40,4 +41,13 @@ model User {
   dateCreation DateTime @default(now())
   derniereModif DateTime @updatedAt
   todos Todo[]
+  delegatedTasks TaskDelegation[]
+}
+
+model TaskDelegation {
+  id        Int    @id @default(autoincrement())
+  todo      Todo   @relation(fields: [todoId], references: [id])
+  todoId    Int
+  user      User   @relation(fields: [userId], references: [id])
+  userId    Int
 }
