@@ -29,6 +29,7 @@ model Todo {
   userId Int
   user User @relation(fields: [userId], references: [id])
   delegations TaskDelegation[]
+  photo String?
 }
 
 model User {
