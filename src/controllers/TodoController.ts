@@ -1,15 +1,15 @@
-import { Todo } from "@prisma/client";
-import TodoService from "../services/TodoService";
+import {  Statut } from "@prisma/client";
+import TodoService from "../services/TodoService.js";
 import path from "path";
 
 import {
   CreateSchemaTodo,
   UpdateSchemaTodo,
-} from "../validators/TodoValidator";
+} from "../validators/TodoValidator.js";
 import { NextFunction, Request, Response } from "express";
 
-import { TaskDelegationRepository } from "../repositories/TaskDelegationRepository";
-import { Status } from "../repositories/ITodoRepository";
+import { TaskDelegationRepository } from "../repositories/TaskDelegationRepository.js";
+import { Status } from "../repositories/ITodoRepository.js";
 
 export default class TodoController {
   private service: TodoService = new TodoService();
@@ -19,13 +19,30 @@ export default class TodoController {
       if (typeof req.userId !== "number") {
         return res.status(401).json({ message: "Utilisateur non authentifié" });
       }
+      // Gestion du champ photo
+      let photo: string | null = null;
+      if (req.file && req.file.filename) {
+        photo = `/public/data/uploads/${req.file.filename}`;
+      }
+      console.log(photo);
+
       const todoData = {
         ...data,
         description: data.description === undefined ? null : data.description,
         userId: req.userId,
+        photo,
+        estAcheve: false,
+        status: Statut.EN_COURS,
       };
       const todo = await this.service.create(todoData);
-      res.status(201).json({ message: "Tache ajoutée avec succès.", todo });
+      // let photoUrl = null;
+      // if (todo.photo) {
+      //   photoUrl = `${req.protocol}://${req.get("host")}${todo.photo}`;
+      // }
+      res.status(201).json({
+        message: "Tache ajoutée avec succès.",
+        todo: { ...todo, photo },
+      });
     } catch (err) {
       next(err);
     }

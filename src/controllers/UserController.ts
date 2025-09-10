@@ -1,13 +1,11 @@
-import { Todo, User } from "@prisma/client";
-import TodoService from "../services/TodoService";
+import {  User } from "@prisma/client";
 
 import { NextFunction, Request, Response } from "express";
-import { Status } from "../repositories/ITodoRepository";
-import UserService from "../services/UserService";
+import UserService from "../services/UserService.js";
 import {
   CreateSchemaUser,
   UpdateSchemaUser,
-} from "../validators/UserValidator";
+} from "../validators/UserValidator.js";
 
 export default class UserController {
   private service: UserService = new UserService();

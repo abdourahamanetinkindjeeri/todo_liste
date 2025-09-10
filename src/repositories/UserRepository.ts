@@ -1,5 +1,5 @@
 import { PrismaClient, User } from "@prisma/client";
-import IRepository from "./IRepository";
+import IRepository from "./IRepository.js";
 
 export default class UserRepository implements IRepository<User> {
   private prisma: PrismaClient = new PrismaClient();

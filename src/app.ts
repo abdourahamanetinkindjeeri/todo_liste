@@ -1,9 +1,9 @@
 import express from "express";
-import todoRouter from "./routes/TodoRoute";
-import userRouter from "./routes/UserRoute";
+import todoRouter from "./routes/TodoRoute.js";
+import userRouter from "./routes/UserRoute.js";
 import cookieParser from "cookie-parser";
-import routerAuth from "./routes/auth.route";
-import authMiddleware from "./middleware/authMiddleware";
+import routerAuth from "./routes/auth.route.js";
+import authMiddleware from "./middleware/authMiddleware.js";
 
 const app = express();
 app.use(express.json());

@@ -2,11 +2,11 @@
   "name": "todo",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
-  "type": "module",
+  "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "tsx watch src/server.ts"
+    "watch": "tsx watch src/server.ts",
+    "start": "node dist/src/server.js"
   },
   "keywords": [],
   "author": "",
@@ -25,10 +25,11 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "@prisma/client": "^6.15.0",
+    "@prisma/client": "^6.16.0",
     "bcrypt": "^6.0.0",
     "bcryptjs": "^3.0.2",
     "cookie-parser": "^1.4.7",
+    "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^2.0.2",

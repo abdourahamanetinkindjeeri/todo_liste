@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 import jwt from "jsonwebtoken";
-import { login } from "../services/login";
+import { login } from "../services/login.js";
 import dotenv from "dotenv";
 
 const router = Router();

@@ -1,7 +1,7 @@
 import { User } from "@prisma/client";
-import IRepository from "../repositories/IRepository";
+import IRepository from "../repositories/IRepository.js";
 
-import UserRepository from "../repositories/UserRepository";
+import UserRepository from "../repositories/UserRepository.js";
 
 export default class UserService implements IRepository<User> {
   private repository: UserRepository;

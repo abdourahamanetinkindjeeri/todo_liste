@@ -1,7 +1,6 @@
 import { Router } from "express";
-import TodoController from "../controllers/TodoController";
-import UserController from "../controllers/UserController";
-import hashPasswordMiddleware from "../middleware/hashPassword";
+import UserController from "../controllers/UserController.js";
+import hashPasswordMiddleware from "../middleware/hashPassword.js";
 
 const router = Router();
 const controller = new UserController();

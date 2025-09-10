@@ -1,8 +1,7 @@
 import { Todo } from "@prisma/client";
-import IRepository from "../repositories/IRepository";
-import TodoRepository from "../repositories/TodoRepository";
-import { da } from "zod/locales";
-import { Status } from "../repositories/ITodoRepository";
+import IRepository from "../repositories/IRepository.js";
+import TodoRepository from "../repositories/TodoRepository.js";
+import { Status } from "../repositories/ITodoRepository.js";
 
 export default class TodoService implements IRepository<Todo> {
   private repository: TodoRepository;
@@ -18,12 +17,9 @@ export default class TodoService implements IRepository<Todo> {
   async findById(id: number): Promise<Todo | null> {
     return this.repository.findById(id);
   }
-  async create(data: {
-    libelle: string;
-    description: string | null;
-    estAcheve?: boolean;
-    userId: number;
-  }): Promise<Todo> {
+  async create(
+    data: Omit<Todo, "id" | "dateCreation" | "derniereModif">
+  ): Promise<Todo> {
     return this.repository.create(data);
   }
   async update(id: number, data: Partial<Omit<Todo, "id">>): Promise<Todo> {
