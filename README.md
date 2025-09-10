@@ -11,6 +11,8 @@ Une API Node.js/Express pour la gestion de tâches avec Prisma et TypeScript.
 - Filtrer les tâches par statut ou par achèvement
 - Gestion des utilisateurs (CRUD)
 - Restriction d'accès : toutes les routes sauf /auth/login et /auth/refresh nécessitent d'être authentifié
+- Délégation de tâche : possibilité pour un utilisateur de déléguer une tâche à un autre utilisateur
+- Upload de photo pour une tâche (champ `photo`)
 
 ## Installation
 
@@ -58,8 +60,10 @@ npm run watch
 - `PUT    /todos/:id/terminee` : Marquer comme terminée (authentifié)
 - `PUT    /todos/:id/en-attente` : Marquer comme en attente (authentifié)
 - `PUT    /todos/:id/en-cours` : Marquer comme en cours (authentifié)
-- `PUT    /todos/:id` : Modifier une tâche (authentifié, créateur uniquement)
+- `PUT    /todos/:id` : Modifier une tâche (authentifié, créateur ou délégué)
 - `DELETE /todos/:id` : Supprimer une tâche (authentifié, créateur uniquement)
+- `POST   /todos/:id/delegate` : Déléguer une tâche à un utilisateur (authentifié, créateur uniquement)
+- `DELETE /todos/:id/delegate` : Retirer la délégation d'une tâche (authentifié, créateur uniquement)
 - `GET    /users` : Liste des utilisateurs (authentifié)
 - `POST   /users` : Créer un utilisateur
 
@@ -71,6 +75,15 @@ curl -X POST http://localhost:8888/auth/login -d '{"email":"awa@exemple.com","pa
 
 # Récupérer la liste des todos (avec le token)
 curl -X GET http://localhost:8888/todos -H "Authorization: Bearer <accessToken>"
+
+# Déléguer une tâche à un utilisateur
+curl -X POST http://localhost:8888/todos/1/delegate -d '{"userId":2}' -H "Authorization: Bearer <accessToken>" -H "Content-Type: application/json"
+
+# Retirer la délégation d'une tâche
+curl -X DELETE http://localhost:8888/todos/1/delegate -d '{"userId":2}' -H "Authorization: Bearer <accessToken>" -H "Content-Type: application/json"
+
+# Créer une tâche avec upload de photo
+curl -X POST http://localhost:8888/todos -H "Authorization: Bearer <accessToken>" -F "libelle=Ma tâche" -F "description=Description" -F "photo=@/chemin/vers/image.png"
 ```
 
 ## Dépendances principales

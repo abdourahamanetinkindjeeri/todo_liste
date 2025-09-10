@@ -1,5 +1,4 @@
 import multer from "multer";
-import path from "path";
 
 export function configStorage(uploadPath: string = "./public/data/uploads/") {
   const storage = multer.diskStorage({
