@@ -1,8 +1,8 @@
-import AuthContainer from "./components/AuthContainer";
-import Dashboard from "./components/Dashboard";
-import { UserProvider } from "./context/UserProvider";
-import { ThemeProvider } from "./context/ThemeProvider";
-import { useUserContext } from "./context/useUserContext";
+import { AuthContainer } from "./features/auth/index.js";
+import { Dashboard } from "./features/dashboard/index.js";
+import { UserProvider } from "./context/UserProvider.jsx";
+import { ThemeProvider } from "./context/ThemeProvider.jsx";
+import { useUserContext } from "./context/useUserContext.jsx";
 
 function AppContent() {
   const { isAuthenticated } = useUserContext();

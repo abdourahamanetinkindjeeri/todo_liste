@@ -99,7 +99,6 @@ export function TodoProvider({ children }) {
     setError(null);
     try {
       const formData = new FormData();
-      // L'API backend attend "libelle" au lieu de "titre"
       formData.append("libelle", todoData.titre);
       if (todoData.description) {
         formData.append("description", todoData.description);
@@ -107,50 +106,40 @@ export function TodoProvider({ children }) {
       if (todoData.photo) {
         formData.append("photo", todoData.photo);
       }
-
       console.log("Création todo avec données:", {
         libelle: todoData.titre,
         description: todoData.description,
         hasPhoto: !!todoData.photo,
       });
-
       const response = await fetch("http://localhost:8888/todos", {
         method: "POST",
         headers: getAuthHeadersMultipart(),
         body: formData,
       });
-
       if (response.ok) {
         const responseData = await response.json();
-        console.log("Todo créé:", responseData);
-
-        // L'API peut retourner {message: "...", data: {...}} ou directement le todo
         const newTodo = responseData.data || responseData;
         setTodos((prev) => [...prev, newTodo]);
+        // Rafraîchir la liste après ajout
+        await fetchTodos();
         return { success: true, data: newTodo };
       } else {
         const errorText = await response.text();
-        console.error("Erreur création:", response.status, errorText);
         let errorMessage = `Erreur ${response.status}: ${response.statusText}`;
-
-        // Essayer de parser le JSON si possible
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.message || errorMessage;
         } catch {
-          // Si ce n'est pas du JSON, utiliser le texte brut
           errorMessage = errorText.includes("<!DOCTYPE")
             ? 'Erreur serveur - Vérifiez que le backend attend "libelle" au lieu de "titre"'
             : errorText;
         }
-
         setError(errorMessage);
         return { success: false, error: errorMessage };
       }
     } catch (err) {
       const errorMessage = "Impossible de contacter le serveur";
       setError(errorMessage);
-      console.error("Erreur création todo:", err);
       return { success: false, error: errorMessage };
     }
   };
@@ -160,7 +149,6 @@ export function TodoProvider({ children }) {
     setError(null);
     try {
       const formData = new FormData();
-      // L'API backend attend "libelle" au lieu de "titre"
       formData.append("libelle", todoData.titre);
       if (todoData.description !== undefined) {
         formData.append("description", todoData.description);
@@ -168,24 +156,23 @@ export function TodoProvider({ children }) {
       if (todoData.photo) {
         formData.append("photo", todoData.photo);
       }
-
       const response = await fetch(`http://localhost:8888/todos/${id}`, {
         method: "PUT",
         headers: getAuthHeadersMultipart(),
         body: formData,
       });
-
       if (response.ok) {
         const responseData = await response.json();
         const updatedTodo = responseData.data || responseData;
         setTodos((prev) =>
           prev.map((todo) => (todo.id === id ? updatedTodo : todo))
         );
+        // Rafraîchir la liste après modification
+        await fetchTodos();
         return { success: true, data: updatedTodo };
       } else {
         const errorText = await response.text();
         let errorMessage = `Erreur ${response.status}: ${response.statusText}`;
-
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.message || errorMessage;
@@ -194,14 +181,12 @@ export function TodoProvider({ children }) {
             ? "Erreur serveur lors de la mise à jour"
             : errorText;
         }
-
         setError(errorMessage);
         return { success: false, error: errorMessage };
       }
     } catch (err) {
       const errorMessage = "Impossible de contacter le serveur";
       setError(errorMessage);
-      console.error("Erreur mise à jour todo:", err);
       return { success: false, error: errorMessage };
     }
   };
@@ -269,14 +254,14 @@ export function TodoProvider({ children }) {
         method: "DELETE",
         headers: getAuthHeaders(),
       });
-
       if (response.ok) {
         setTodos((prev) => prev.filter((todo) => todo.id !== id));
+        // Rafraîchir la liste après suppression
+        await fetchTodos();
         return { success: true };
       } else {
         const errorText = await response.text();
         let errorMessage = `Erreur ${response.status}: ${response.statusText}`;
-
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.message || errorMessage;
@@ -285,14 +270,12 @@ export function TodoProvider({ children }) {
             ? "Erreur serveur lors de la suppression"
             : errorText;
         }
-
         setError(errorMessage);
         return { success: false, error: errorMessage };
       }
     } catch (err) {
       const errorMessage = "Impossible de contacter le serveur";
       setError(errorMessage);
-      console.error("Erreur suppression todo:", err);
       return { success: false, error: errorMessage };
     }
   };
@@ -350,30 +333,23 @@ export function TodoProvider({ children }) {
       const headers = getAuthHeaders();
       const userIdNumber = typeof userId === "string" ? Number(userId) : userId;
       const body = JSON.stringify({ userId: userIdNumber });
-      console.log("[delegateTodo] Requête:", { url, headers, body });
-
       const response = await fetch(url, {
         method: "POST",
         headers,
         body,
       });
-
       if (response.ok) {
         const responseData = await response.json();
         const updatedTodo = responseData.data || responseData;
         setTodos((prev) =>
           prev.map((todo) => (todo.id === id ? updatedTodo : todo))
         );
+        // Rafraîchir la liste après délégation
+        await fetchTodos();
         return { success: true, data: updatedTodo };
       } else {
         const errorText = await response.text();
-        console.error("[delegateTodo] Réponse erreur:", {
-          status: response.status,
-          statusText: response.statusText,
-          errorText,
-        });
         let errorMessage = `Erreur ${response.status}: ${response.statusText}`;
-
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.message || errorMessage;
@@ -382,14 +358,12 @@ export function TodoProvider({ children }) {
             ? "Erreur serveur lors de la délégation"
             : errorText;
         }
-
         setError(errorMessage);
         return { success: false, error: errorMessage };
       }
     } catch (err) {
       const errorMessage = "Impossible de contacter le serveur";
       setError(errorMessage);
-      console.error("Erreur délégation todo:", err);
       return { success: false, error: errorMessage };
     }
   };
@@ -405,18 +379,18 @@ export function TodoProvider({ children }) {
           headers: getAuthHeaders(),
         }
       );
-
       if (response.ok) {
         const responseData = await response.json();
         const updatedTodo = responseData.data || responseData;
         setTodos((prev) =>
           prev.map((todo) => (todo.id === id ? updatedTodo : todo))
         );
+        // Rafraîchir la liste après suppression de délégation
+        await fetchTodos();
         return { success: true, data: updatedTodo };
       } else {
         const errorText = await response.text();
         let errorMessage = `Erreur ${response.status}: ${response.statusText}`;
-
         try {
           const errorData = JSON.parse(errorText);
           errorMessage = errorData.message || errorMessage;
@@ -425,14 +399,12 @@ export function TodoProvider({ children }) {
             ? "Erreur serveur lors de la suppression de délégation"
             : errorText;
         }
-
         setError(errorMessage);
         return { success: false, error: errorMessage };
       }
     } catch (err) {
       const errorMessage = "Impossible de contacter le serveur";
       setError(errorMessage);
-      console.error("Erreur suppression délégation:", err);
       return { success: false, error: errorMessage };
     }
   };
