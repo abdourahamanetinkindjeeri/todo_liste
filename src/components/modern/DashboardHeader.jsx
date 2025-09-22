@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import { getToken } from "../../utils/tokenUtils";
+import SimpleTodoHistory from "./SimpleTodoHistory";
 import { useTheme } from "../../context/useTheme";
 import { useUserContext } from "../../context/useUserContext";
 import { useTodoContext } from "../../context/useTodoContext";
@@ -17,6 +19,38 @@ const DashboardHeader = () => {
   const { user } = useUserContext();
   const { showAllTodos, setShowAllTodos } = useTodoContext();
   const [showUsersWidget, setShowUsersWidget] = useState(false);
+  const [showHistoryModal, setShowHistoryModal] = useState(false);
+  const [historyData, setHistoryData] = useState([]);
+  const [loadingHistory, setLoadingHistory] = useState(false);
+  const [errorHistory, setErrorHistory] = useState(null);
+
+  // Récupérer l'historique depuis l'API à l'ouverture de la modal
+  const fetchHistory = async () => {
+    if (!user?.id) return;
+    setLoadingHistory(true);
+    setErrorHistory(null);
+    try {
+      const token = getToken();
+      const response = await fetch(
+        `http://localhost:8888/todos/history/user/${user.id}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+        }
+      );
+      if (!response.ok)
+        throw new Error("Erreur lors de la récupération de l'historique");
+      const result = await response.json();
+      setHistoryData(result.data || []);
+    } catch (err) {
+      setErrorHistory(err.message);
+      setHistoryData([]);
+    } finally {
+      setLoadingHistory(false);
+    }
+  };
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -72,7 +106,7 @@ const DashboardHeader = () => {
       {/* Statistiques rapides */}
       <QuickStats />
 
-      {/* Toggle vue personnelle/équipe */}
+      {/* Toggle vue personnelle/équipe + bouton historique */}
       <div className="mt-6">
         <div
           className={`inline-flex rounded-lg p-1 ${
@@ -109,7 +143,45 @@ const DashboardHeader = () => {
           >
             Équipe
           </button>
+          <button
+            onClick={() => {
+              setShowHistoryModal(true);
+              fetchHistory();
+            }}
+            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ml-2 ${
+              darkMode
+                ? "bg-gray-700 text-white hover:bg-blue-600"
+                : "bg-gray-100 text-blue-600 hover:bg-blue-100"
+            }`}
+          >
+            Historique
+          </button>
         </div>
+        {/* Modal historique */}
+        {showHistoryModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
+            <div className="relative w-full max-w-lg p-6 bg-white rounded-lg shadow-lg">
+              <button
+                className="absolute text-xl text-gray-500 top-2 right-2 hover:text-red-500"
+                onClick={() => setShowHistoryModal(false)}
+                aria-label="Fermer"
+              >
+                &times;
+              </button>
+              {loadingHistory ? (
+                <div className="py-8 text-center text-blue-600">
+                  Chargement...
+                </div>
+              ) : errorHistory ? (
+                <div className="py-8 text-center text-red-500">
+                  {errorHistory}
+                </div>
+              ) : (
+                <SimpleTodoHistory history={historyData} />
+              )}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Widget des utilisateurs */}

@@ -297,18 +297,66 @@ export function TodoProvider({ children }) {
     }
   };
 
-  // Déléguer un todo
+  // // Déléguer un todo
+  // const delegateTodo = async (id, userId) => {
+  //   setError(null);
+  //   try {
+  //     const body = JSON.stringify({ userId });
+
+  //     console.log(userId);
+  //     const response = await fetch(
+  //       `http://localhost:8888/todos/${id}/delegate`,
+  //       {
+  //         method: "POST",
+  //         headers: getAuthHeaders(),
+  //         body,
+  //       }
+  //     );
+
+  //     if (response.ok) {
+  //       const responseData = await response.json();
+  //       const updatedTodo = responseData.data || responseData;
+  //       setTodos((prev) =>
+  //         prev.map((todo) => (todo.id === id ? updatedTodo : todo))
+  //       );
+  //       return { success: true, data: updatedTodo };
+  //     } else {
+  //       const errorText = await response.text();
+  //       let errorMessage = `Erreur ${response.status}: ${response.statusText}`;
+
+  //       try {
+  //         const errorData = JSON.parse(errorText);
+  //         errorMessage = errorData.message || errorMessage;
+  //       } catch {
+  //         errorMessage = errorText.includes("<!DOCTYPE")
+  //           ? "Erreur serveur lors de la délégation"
+  //           : errorText;
+  //       }
+
+  //       setError(errorMessage);
+  //       return { success: false, error: errorMessage };
+  //     }
+  //   } catch (err) {
+  //     const errorMessage = "Impossible de contacter le serveur";
+  //     setError(errorMessage);
+  //     console.error("Erreur délégation todo:", err);
+  //     return { success: false, error: errorMessage };
+  //   }
+  // };
   const delegateTodo = async (id, userId) => {
     setError(null);
     try {
-      const response = await fetch(
-        `http://localhost:8888/todos/${id}/delegate`,
-        {
-          method: "POST",
-          headers: getAuthHeaders(),
-          body: JSON.stringify({ userId }),
-        }
-      );
+      const url = `http://localhost:8888/todos/${id}/delegate`;
+      const headers = getAuthHeaders();
+      const userIdNumber = typeof userId === "string" ? Number(userId) : userId;
+      const body = JSON.stringify({ userId: userIdNumber });
+      console.log("[delegateTodo] Requête:", { url, headers, body });
+
+      const response = await fetch(url, {
+        method: "POST",
+        headers,
+        body,
+      });
 
       if (response.ok) {
         const responseData = await response.json();
@@ -319,6 +367,11 @@ export function TodoProvider({ children }) {
         return { success: true, data: updatedTodo };
       } else {
         const errorText = await response.text();
+        console.error("[delegateTodo] Réponse erreur:", {
+          status: response.status,
+          statusText: response.statusText,
+          errorText,
+        });
         let errorMessage = `Erreur ${response.status}: ${response.statusText}`;
 
         try {

@@ -83,8 +83,14 @@ const SimpleTodoCard = ({ todo, showNotification }) => {
                   darkMode ? "text-blue-400" : "text-blue-600"
                 }`}
               >
-                Délégué à{" "}
-                {delegatedUser?.prenom || delegatedUser?.name || "Utilisateur"}
+                Délégué à {delegatedUser ? (
+                  <>
+                    {delegatedUser.prenom ? delegatedUser.prenom : ""}
+                    {delegatedUser.nom ? ` ${delegatedUser.nom}` : ""}
+                    {delegatedUser.name && !delegatedUser.prenom && !delegatedUser.nom ? delegatedUser.name : ""}
+                    {delegatedUser.email ? ` (${delegatedUser.email})` : ""}
+                  </>
+                ) : "Utilisateur"}
               </span>
             </div>
           )}
@@ -133,7 +139,7 @@ const SimpleTodoCard = ({ todo, showNotification }) => {
 
       {todo.photo && (
         <img
-          src={todo.photo}
+          src={`http://localhost:8888/${todo.photo}`}
           alt="Illustration"
           className="object-cover w-full h-20 mb-3 rounded-lg"
         />

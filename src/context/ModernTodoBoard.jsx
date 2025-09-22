@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { useTodoContext } from "../context/useTodoContext";
-import { useUserContext } from "../context/useUserContext";
+import { useTodoContext } from "./useTodoContext";
+import { useUserContext } from "./useUserContext";
 import ModernTodoColumn from "./ModernTodoColumn";
 import CreateTodoForm from "./delete/CreateTodoForm";
 import EditTodoForm from "./delete/EditTodoForm";

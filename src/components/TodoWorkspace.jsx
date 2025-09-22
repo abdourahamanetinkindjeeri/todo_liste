@@ -1,12 +1,12 @@
 import React, { useState } from "react";
-import { useTheme } from "../../context/useTheme";
-import { useTodoContext } from "../../context/useTodoContext";
-import SimpleTodoBoard from "./SimpleTodoBoard";
-import SimpleFloatingActions from "./SimpleFloatingActions";
-import SimpleCreateTodoForm from "./SimpleCreateTodoForm";
-import SimpleEditTodoForm from "./SimpleEditTodoForm";
-import SearchBar from "./SearchBar";
-import NotificationToast from "./NotificationToast";
+import { useTheme } from "../context/useTheme";
+import { useTodoContext } from "../context/useTodoContext";
+import SimpleTodoBoard from "./modern/SimpleTodoBoard";
+import SimpleFloatingActions from "./modern/SimpleFloatingActions";
+import SimpleCreateTodoForm from "./modern/SimpleCreateTodoForm";
+import SimpleEditTodoForm from "./modern/SimpleEditTodoForm";
+import SearchBar from "./modern/SearchBar";
+import NotificationToast from "./modern/NotificationToast";
 
 const TodoWorkspace = () => {
   const { darkMode } = useTheme();

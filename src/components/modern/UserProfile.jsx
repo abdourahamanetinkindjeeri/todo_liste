@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useTheme } from "../../context/useTheme";
 
 import { FiUser, FiLogOut, FiSettings } from "react-icons/fi";
-import LogoutConfirmModal from "../../components/LogoutConfirmModal";
+import LogoutConfirmModal from "../LogoutConfirmModal";
 import { useUserContext } from "../../context/useUserContext";
 
 const UserProfile = () => {
