@@ -1,4 +1,3 @@
-import React from "react";
 import SimpleDashboard from "./modern/SimpleDashboard";
 
 const Dashboard = () => {

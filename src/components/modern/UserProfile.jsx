@@ -5,10 +5,6 @@ import { FiUser, FiLogOut, FiSettings } from "react-icons/fi";
 import LogoutConfirmModal from "../../components/LogoutConfirmModal";
 import { useUserContext } from "../../context/useUserContext";
 
-/**
- * Profil utilisateur avec menu déroulant
- * Principe: Single Responsibility - Gère uniquement l'affichage du profil utilisateur
- */
 const UserProfile = () => {
   const { darkMode } = useTheme();
   const { user, logout } = useUserContext();
@@ -132,7 +128,6 @@ const UserProfile = () => {
           onConfirm={() => {
             logout();
             setShowLogoutModal(false);
-            // La redirection est gérée par le contexte (AppContent)
           }}
         />
       )}

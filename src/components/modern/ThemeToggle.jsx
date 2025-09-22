@@ -2,10 +2,6 @@ import React from "react";
 import { useTheme } from "../../context/useTheme";
 import { FiSun, FiMoon } from "react-icons/fi";
 
-/**
- * Bouton toggle pour le thème
- * Principe: Single Responsibility - Gère uniquement le changement de thème
- */
 const ThemeToggle = () => {
   const { darkMode, toggleDarkMode } = useTheme();
 

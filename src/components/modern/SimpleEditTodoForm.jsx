@@ -3,10 +3,6 @@ import { useTodoContext } from "../../context/useTodoContext";
 import { useTheme } from "../../context/useTheme";
 import { FiX, FiUpload, FiImage, FiEdit3 } from "react-icons/fi";
 
-/**
- * Formulaire d'édition de todo moderne et simple
- * Principe: Single Responsibility - Gère uniquement l'édition de todos
- */
 const SimpleEditTodoForm = ({ todo, onClose, onSuccess }) => {
   const { darkMode } = useTheme();
   const { updateTodo } = useTodoContext();
@@ -23,7 +19,6 @@ const SimpleEditTodoForm = ({ todo, onClose, onSuccess }) => {
 
   useEffect(() => {
     if (todo.photo) {
-      // Construire l'URL complète si nécessaire
       const photoUrl = todo.photo.startsWith("http")
         ? todo.photo
         : `http://localhost:8888${todo.photo}`;
@@ -34,7 +29,7 @@ const SimpleEditTodoForm = ({ todo, onClose, onSuccess }) => {
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
-    setError(null); // Clear error when user types
+    setError(null);
   };
 
   const handleFileChange = (e) => {
@@ -87,7 +82,6 @@ const SimpleEditTodoForm = ({ todo, onClose, onSuccess }) => {
         description: formData.description.trim(),
       };
 
-      // Ajouter la photo seulement si une nouvelle photo est sélectionnée
       if (selectedFile) {
         todoData.photo = selectedFile;
       }
@@ -115,7 +109,6 @@ const SimpleEditTodoForm = ({ todo, onClose, onSuccess }) => {
           : "bg-white border border-gray-200"
       }`}
     >
-      {/* En-tête moderne */}
       <div
         className={`px-6 py-4 border-b ${
           darkMode ? "border-gray-700" : "border-gray-200"
@@ -163,7 +156,6 @@ const SimpleEditTodoForm = ({ todo, onClose, onSuccess }) => {
         </div>
       </div>
 
-      {/* Formulaire */}
       <form onSubmit={handleSubmit} className="p-6 space-y-6">
         {/* Message d'erreur */}
         {error && (
@@ -241,12 +233,12 @@ const SimpleEditTodoForm = ({ todo, onClose, onSuccess }) => {
               <img
                 src={currentPhotoUrl}
                 alt="Photo actuelle"
-                className="w-full h-32 object-cover rounded-lg"
+                className="object-cover w-full h-32 rounded-lg"
               />
               <button
                 type="button"
                 onClick={handleRemoveCurrentPhoto}
-                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                className="absolute p-1 text-white transition-colors bg-red-500 rounded-full top-2 right-2 hover:bg-red-600"
                 disabled={isSubmitting}
               >
                 <FiX size={16} />
@@ -310,12 +302,12 @@ const SimpleEditTodoForm = ({ todo, onClose, onSuccess }) => {
               <img
                 src={previewUrl}
                 alt="Nouvelle photo"
-                className="w-full h-32 object-cover rounded-lg"
+                className="object-cover w-full h-32 rounded-lg"
               />
               <button
                 type="button"
                 onClick={handleRemoveNewFile}
-                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                className="absolute p-1 text-white transition-colors bg-red-500 rounded-full top-2 right-2 hover:bg-red-600"
                 disabled={isSubmitting}
               >
                 <FiX size={16} />

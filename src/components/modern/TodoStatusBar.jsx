@@ -2,10 +2,6 @@ import React from "react";
 import { useTheme } from "../../context/useTheme";
 import { FiClock, FiPlay, FiCheckCircle } from "react-icons/fi";
 
-/**
- * Barre de progression de statut visuelle
- * Principe: Single Responsibility - Affiche visuellement l'état d'avancement
- */
 const TodoStatusBar = ({ todo, TODO_STATUSES }) => {
   const { darkMode } = useTheme();
   const getStatusInfo = () => {

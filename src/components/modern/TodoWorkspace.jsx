@@ -8,15 +8,10 @@ import SimpleEditTodoForm from "./SimpleEditTodoForm";
 import SearchBar from "./SearchBar";
 import NotificationToast from "./NotificationToast";
 
-/**
- * Espace de travail principal pour les todos
- * Principe: Single Responsibility - Gère uniquement l'orchestration des todos
- */
 const TodoWorkspace = () => {
   const { darkMode } = useTheme();
   const { isLoading, error, setError, fetchTodos } = useTodoContext();
 
-  // États locaux pour les modales et interactions
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTodo, setEditingTodo] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
@@ -42,7 +37,6 @@ const TodoWorkspace = () => {
 
   return (
     <div className="px-6 pb-8 space-y-6">
-      {/* Notification Toast */}
       {notification && (
         <NotificationToast
           type={notification.type}
@@ -81,7 +75,6 @@ const TodoWorkspace = () => {
         </div>
       )}
 
-      {/* Tableau des todos */}
       <SimpleTodoBoard
         searchTerm={searchTerm}
         onEditTodo={handleEditTodo}

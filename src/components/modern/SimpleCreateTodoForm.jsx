@@ -3,10 +3,7 @@ import { useTodoContext } from "../../context/useTodoContext";
 import { useTheme } from "../../context/useTheme";
 import { FiX, FiUpload, FiImage, FiSave } from "react-icons/fi";
 
-/**
- * Formulaire de création de todo moderne et simple
- * Principe: Single Responsibility - Gère uniquement la création de todos
- */
+
 const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
   const { darkMode } = useTheme();
   const { createTodo } = useTodoContext();
@@ -263,12 +260,12 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
               <img
                 src={previewUrl}
                 alt="Preview"
-                className="w-full h-32 object-cover rounded-lg"
+                className="object-cover w-full h-32 rounded-lg"
               />
               <button
                 type="button"
                 onClick={handleRemoveFile}
-                className="absolute top-2 right-2 p-1 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                className="absolute p-1 text-white transition-colors bg-red-500 rounded-full top-2 right-2 hover:bg-red-600"
                 disabled={isSubmitting}
               >
                 <FiX size={16} />

@@ -146,7 +146,6 @@ const ModernTodoBoard = ({ darkMode, toggleDarkMode }) => {
 
   return (
     <div className="relative min-h-screen">
-      {/* Notification Toast */}
       {notification && (
         <NotificationToast
           type={notification.type}

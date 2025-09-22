@@ -3,16 +3,12 @@ import { useTheme } from "../../context/useTheme";
 import { useTodoContext } from "../../context/useTodoContext";
 import { FiCheckCircle, FiClock, FiTrendingUp, FiUsers } from "react-icons/fi";
 
-/**
- * Statistiques rapides
- * Principe: Single Responsibility - Affiche uniquement les statistiques essentielles
- */
+
 const QuickStats = () => {
   const { darkMode } = useTheme();
   const { todosByStatus, currentUserTodos, showAllTodos, TODO_STATUSES } =
     useTodoContext();
 
-  // Calcul des statistiques
   const stats = [
     {
       icon: FiCheckCircle,
@@ -58,7 +54,7 @@ const QuickStats = () => {
   ];
 
   return (
-    <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
       {stats.map((stat, index) => {
         const Icon = stat.icon;
         return (

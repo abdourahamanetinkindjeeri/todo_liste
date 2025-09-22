@@ -15,23 +15,19 @@ import {
   FiImage,
   FiMoreVertical,
 } from "react-icons/fi";
+import SimpleEditTodoForm from "./SimpleEditTodoForm";
 
-/**
- * Carte todo simplifiée avec toutes les fonctionnalités backend
- * Principe: Single Responsibility - Gère l'affichage et interactions d'une tâche
- */
 const SimpleTodoCard = ({ todo, showNotification }) => {
   const { changeStatus, TODO_STATUSES, users } = useTodoContext();
   const { user: currentUser } = useUserContext();
   const { darkMode } = useTheme();
 
-  // États pour les modales
   const [showDelegateModal, setShowDelegateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showRemoveDelegateModal, setShowRemoveDelegateModal] = useState(false);
+  const [showEditingModel, setShowEditingModel] = useState(false);
   const [isChangingStatus, setIsChangingStatus] = useState(false);
 
-  // Vérifie si l'utilisateur peut modifier la tâche
   const isOwner =
     todo.userId === currentUser?.id || todo.user?.id === currentUser?.id;
   const isDelegate = todo.delegatedTo === currentUser?.id;
@@ -41,14 +37,12 @@ const SimpleTodoCard = ({ todo, showNotification }) => {
   const isDelegated =
     !!todo.delegatedTo && todo.delegatedTo !== currentUser?.id;
 
-  // Changement de statut
   const handleStatusChange = async (newStatus) => {
     setIsChangingStatus(true);
     const result = await changeStatus(todo.id, newStatus);
     if (result.success) {
       showNotification("success", "Statut mis à jour");
     } else {
-      // Afficher le message d'erreur précis du backend (ex : 401 Unauthorized)
       let errorMsg = result.error || "Erreur lors du changement de statut";
       if (
         errorMsg.includes("401") ||
@@ -69,7 +63,6 @@ const SimpleTodoCard = ({ todo, showNotification }) => {
           : "bg-white border border-gray-200"
       }`}
     >
-      {/* Titre et délégation */}
       <div className="flex items-start justify-between mb-3">
         <div className="flex-1 min-w-0">
           <h4
@@ -96,7 +89,6 @@ const SimpleTodoCard = ({ todo, showNotification }) => {
             </div>
           )}
         </div>
-        {/* Actions principales */}
         <div className="flex gap-2">
           {canModify && (
             <>
@@ -106,6 +98,14 @@ const SimpleTodoCard = ({ todo, showNotification }) => {
               >
                 Déléguer
               </button>
+
+              <button
+                onClick={() => setShowEditingModel(true)}
+                className="p-1 text-xs text-gray-600 rounded hover:bg-gray-600 "
+              >
+                Editer
+              </button>
+
               {isDelegated && (
                 <button
                   onClick={() => setShowRemoveDelegateModal(true)}
@@ -119,10 +119,8 @@ const SimpleTodoCard = ({ todo, showNotification }) => {
         </div>
       </div>
 
-      {/* Barre de statut moderne */}
       <TodoStatusBar todo={todo} TODO_STATUSES={TODO_STATUSES} />
 
-      {/* Description */}
       {todo.description && (
         <p
           className={`text-xs mb-3 ${
@@ -133,7 +131,6 @@ const SimpleTodoCard = ({ todo, showNotification }) => {
         </p>
       )}
 
-      {/* Image si présente */}
       {todo.photo && (
         <img
           src={todo.photo}
@@ -142,7 +139,6 @@ const SimpleTodoCard = ({ todo, showNotification }) => {
         />
       )}
 
-      {/* Boutons de changement de statut */}
       <TodoStatusButtons
         todo={todo}
         onStatusChange={handleStatusChange}
@@ -151,7 +147,6 @@ const SimpleTodoCard = ({ todo, showNotification }) => {
         disabled={!canModify}
       />
 
-      {/* Métadonnées */}
       <div className="flex items-center gap-2 text-xs">
         <FiClock
           size={12}
@@ -168,7 +163,17 @@ const SimpleTodoCard = ({ todo, showNotification }) => {
         )}
       </div>
 
-      {/* Modales */}
+      {showEditingModel && (
+        <SimpleEditTodoForm
+          todo={todo}
+          onClose={() => setShowEditingModel(false)}
+          onSuccess={(message) => {
+            setShowEditingModel(false);
+            showNotification("success", message);
+          }}
+        />
+      )}
+
       {showDelegateModal && (
         <SimpleUserDelegateModal
           todo={todo}

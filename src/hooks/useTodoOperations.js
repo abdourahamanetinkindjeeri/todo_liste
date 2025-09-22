@@ -19,7 +19,6 @@ export const useTodoOperations = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Wrapper générique pour les opérations
   const executeOperation = useCallback(async (operation, ...args) => {
     setIsLoading(true);
     setError(null);
@@ -40,7 +39,6 @@ export const useTodoOperations = () => {
     }
   }, []);
 
-  // Opérations spécifiques
   const createTodo = useCallback(
     (todoData) => {
       return executeOperation(createTodoContext, todoData);
@@ -105,7 +103,6 @@ export const useTodoOperations = () => {
   }, []);
 
   return {
-    // Opérations
     createTodo,
     updateTodo,
     deleteTodo,
@@ -114,7 +111,6 @@ export const useTodoOperations = () => {
     removeDelegation,
     refreshTodos,
 
-    // États
     isLoading,
     error,
     clearError,

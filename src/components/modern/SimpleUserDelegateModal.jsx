@@ -3,7 +3,6 @@ import { useUserContext } from "../../context/useUserContext";
 
 const SimpleUserDelegateModal = ({ todo, onClose }) => {
   const { user } = useUserContext();
-  // Autorisation : propriétaire ou délégataire
   const isOwner = todo?.userId === user?.id || todo?.user?.id === user?.id;
   const isDelegate = todo?.delegatedTo === user?.id;
   const canDelegate = isOwner || isDelegate;

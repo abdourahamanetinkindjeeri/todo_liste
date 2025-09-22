@@ -58,7 +58,6 @@ const LoginPage = ({ onSwitchToSignup }) => {
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="flex flex-col w-full max-w-4xl overflow-hidden bg-white shadow-2xl rounded-2xl md:flex-row">
-        {/* Section gauche (illustration) */}
         <div className="flex-col items-center justify-center hidden p-12 text-white md:w-1/2 bg-gradient-to-br from-green-500 to-green-700 md:flex">
           <img
             src="https://images.unsplash.com/photo-1557683316-973673baf926"
@@ -72,7 +71,6 @@ const LoginPage = ({ onSwitchToSignup }) => {
           </p>
         </div>
 
-        {/* Section droite (formulaire) */}
         <div className="p-8 md:w-1/2 md:p-12">
           <div className="mb-8 text-center">
             <img
