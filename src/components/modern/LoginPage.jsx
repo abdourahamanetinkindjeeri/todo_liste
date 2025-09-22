@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { FiEye, FiEyeOff, FiLock, FiMail } from "react-icons/fi";
-import { FaGoogle, FaGithub, FaLinkedin } from "react-icons/fa";
-import { useUserContext } from "../context/useUserContext";
+import { useUserContext } from "../../context/useUserContext";
 
 const LoginPage = ({ onSwitchToSignup }) => {
   const { login } = useUserContext();
@@ -17,14 +16,14 @@ const LoginPage = ({ onSwitchToSignup }) => {
   const validateForm = () => {
     const newErrors = {};
     if (!formData.email) {
-      newErrors.email = "Email is required";
+      newErrors.email = "Email requis";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Invalid email format";
+      newErrors.email = "Format email invalide";
     }
     if (!formData.password) {
-      newErrors.password = "Password is required";
+      newErrors.password = "Mot de passe requis";
     } else if (formData.password.length < 6) {
-      newErrors.password = "Password must be at least 6 characters";
+      newErrors.password = "Minimum 6 caractères";
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -39,9 +38,8 @@ const LoginPage = ({ onSwitchToSignup }) => {
         if (!result.success) {
           setErrors({ general: result.error });
         }
-        // Si la connexion réussit, le context se chargera de la redirection
       } catch (error) {
-        console.error("Login failed", error);
+        console.error("Échec connexion", error);
         setErrors({ general: "Erreur lors de la connexion" });
       } finally {
         setIsLoading(false);
@@ -60,28 +58,30 @@ const LoginPage = ({ onSwitchToSignup }) => {
   return (
     <div className="flex items-center justify-center min-h-screen p-4 bg-gradient-to-br from-gray-50 to-blue-50">
       <div className="flex flex-col w-full max-w-4xl overflow-hidden bg-white shadow-2xl rounded-2xl md:flex-row">
-        <div className="flex-col items-center justify-center hidden p-12 text-white md:w-1/2 bg-gradient-to-br from-blue-600 to-blue-800 md:flex">
+        {/* Section gauche (illustration) */}
+        <div className="flex-col items-center justify-center hidden p-12 text-white md:w-1/2 bg-gradient-to-br from-green-500 to-green-700 md:flex">
           <img
-            src="https://images.unsplash.com/photo-1586528116311-ad8dd3c8310d"
-            alt="Inventory Management"
-            className="object-cover w-32 h-32 mb-8 transition-transform duration-300 rounded-full hover:scale-110"
+            src="https://images.unsplash.com/photo-1557683316-973673baf926"
+            alt="Todo Illustration"
+            className="object-cover w-32 h-32 mb-8 rounded-full shadow-lg"
           />
-          <h2 className="mb-4 text-3xl font-bold">Inventory System</h2>
+          <h2 className="mb-4 text-3xl font-bold">Todo Manager</h2>
           <p className="text-lg text-center opacity-90">
-            Access your inventory management system to track and manage
-            equipment allocations.
+            Organisez vos journées avec simplicité. Créez, suivez et complétez
+            vos tâches en toute efficacité.
           </p>
         </div>
 
+        {/* Section droite (formulaire) */}
         <div className="p-8 md:w-1/2 md:p-12">
           <div className="mb-8 text-center">
             <img
-              src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf"
-              alt="Inventory Logo"
-              className="w-16 h-16 mx-auto mb-4 transition-transform duration-300 rounded-full hover:scale-110"
+              src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f"
+              alt="Todo Logo"
+              className="w-16 h-16 mx-auto mb-4 rounded-full shadow-md"
             />
             <h1 className="text-2xl font-bold text-gray-800">
-              Equipment Inventory Login
+              Connexion à Todo List
             </h1>
           </div>
 
@@ -92,10 +92,9 @@ const LoginPage = ({ onSwitchToSignup }) => {
               </div>
             )}
 
+            {/* Champ email */}
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <FiMail className="text-gray-400" />
-              </div>
+              <FiMail className="absolute text-gray-400 left-3 top-3" />
               <input
                 type="email"
                 name="email"
@@ -103,18 +102,17 @@ const LoginPage = ({ onSwitchToSignup }) => {
                 onChange={handleChange}
                 className={`block w-full pl-10 pr-3 py-2.5 border ${
                   errors.email ? "border-red-500" : "border-gray-300"
-                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300`}
-                placeholder="Email address"
+                } rounded-lg focus:ring-2 focus:ring-green-500 transition-all`}
+                placeholder="Adresse email"
               />
               {errors.email && (
                 <p className="mt-1 text-sm text-red-500">{errors.email}</p>
               )}
             </div>
 
+            {/* Champ mot de passe */}
             <div className="relative">
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <FiLock className="text-gray-400" />
-              </div>
+              <FiLock className="absolute text-gray-400 left-3 top-3" />
               <input
                 type={showPassword ? "text" : "password"}
                 name="password"
@@ -122,13 +120,13 @@ const LoginPage = ({ onSwitchToSignup }) => {
                 onChange={handleChange}
                 className={`block w-full pl-10 pr-10 py-2.5 border ${
                   errors.password ? "border-red-500" : "border-gray-300"
-                } rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-300`}
-                placeholder="Password"
+                } rounded-lg focus:ring-2 focus:ring-green-500 transition-all`}
+                placeholder="Mot de passe"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute inset-y-0 right-0 flex items-center pr-3"
+                className="absolute right-3 top-2.5"
               >
                 {showPassword ? (
                   <FiEyeOff className="text-gray-400" />
@@ -141,6 +139,7 @@ const LoginPage = ({ onSwitchToSignup }) => {
               )}
             </div>
 
+            {/* Options */}
             <div className="flex items-center justify-between">
               <label className="flex items-center">
                 <input
@@ -148,65 +147,36 @@ const LoginPage = ({ onSwitchToSignup }) => {
                   name="rememberMe"
                   checked={formData.rememberMe}
                   onChange={handleChange}
-                  className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                  className="w-4 h-4 text-green-600 border-gray-300 rounded"
                 />
-                <span className="ml-2 text-sm text-gray-600">Remember me</span>
+                <span className="ml-2 text-sm text-gray-600">
+                  Se souvenir de moi
+                </span>
               </label>
               <a
                 href="#"
-                className="text-sm text-blue-600 transition-colors duration-300 hover:text-blue-800"
+                className="text-sm text-green-600 hover:text-green-800"
               >
-                Forgot password?
+                Mot de passe oublié ?
               </a>
             </div>
 
+            {/* Bouton login */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full bg-gradient-to-r from-blue-600 to-blue-800 text-white py-2.5 rounded-lg font-medium hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all duration-300"
+              className="w-full bg-gradient-to-r from-green-500 to-green-700 text-white py-2.5 rounded-lg font-medium hover:opacity-90 focus:ring-2 focus:ring-green-500 transition-all"
             >
-              {isLoading ? (
-                <svg
-                  className="w-5 h-5 mx-auto animate-spin"
-                  viewBox="0 0 24 24"
-                >
-                  <circle
-                    className="opacity-25"
-                    cx="12"
-                    cy="12"
-                    r="10"
-                    stroke="currentColor"
-                    strokeWidth="4"
-                    fill="none"
-                  />
-                  <path
-                    className="opacity-75"
-                    fill="currentColor"
-                    d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                  />
-                </svg>
-              ) : (
-                "Access Inventory"
-              )}
+              {isLoading ? "Connexion..." : "Accéder à mes todos"}
             </button>
 
-            <div className="relative my-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-300"></div>
-              </div>
-              <div className="relative flex justify-center text-sm">
-                <span className="px-2 text-gray-500 bg-white">
-                  Enterprise Login Options
-                </span>
-              </div>
-            </div>
-
+            {/* Switch vers signup */}
             <p className="mt-8 text-sm text-center text-gray-600">
               Pas encore de compte ?{" "}
               <button
                 type="button"
                 onClick={onSwitchToSignup}
-                className="font-medium text-blue-600 transition-colors duration-300 hover:text-blue-800"
+                className="font-medium text-green-600 hover:text-green-800"
               >
                 Créer un compte
               </button>

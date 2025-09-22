@@ -1,9 +1,10 @@
 import { useState } from "react";
-import LoginPage from "./LoginPage";
-import SignupPage from "./SignupPage";
+import LoginPage from "./modern/LoginPage";
+import SignupPage from "./modern/SignupPage";
+
 
 const AuthContainer = () => {
-  const [currentView, setCurrentView] = useState("login"); // "login" ou "signup"
+  const [currentView, setCurrentView] = useState("login");
 
   const switchToLogin = () => {
     setCurrentView("login");

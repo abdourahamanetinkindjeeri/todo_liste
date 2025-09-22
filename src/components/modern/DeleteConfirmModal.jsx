@@ -1,13 +1,9 @@
 import React, { useEffect } from "react";
 import { FiTrash2, FiX, FiAlertTriangle } from "react-icons/fi";
+import { useTheme } from "../../context/useTheme";
 
-const DeleteConfirmModal = ({
-  isOpen,
-  onConfirm,
-  onCancel,
-  darkMode,
-  todoTitle,
-}) => {
+const DeleteConfirmModal = ({ isOpen, onConfirm, onCancel, todoTitle }) => {
+  const { darkMode } = useTheme();
   useEffect(() => {
     const handleKeyDown = (e) => {
       if (e.key === "Escape") {

@@ -2,9 +2,9 @@ import React, { useState, useEffect } from "react";
 import { useTodoContext } from "../context/useTodoContext";
 import { useUserContext } from "../context/useUserContext";
 import ModernTodoColumn from "./ModernTodoColumn";
-import CreateTodoForm from "./CreateTodoForm";
-import EditTodoForm from "./EditTodoForm";
-import ModernNavbar from "./ModernNavbar";
+import CreateTodoForm from "./delete/CreateTodoForm";
+import EditTodoForm from "./delete/EditTodoForm";
+import ModernNavbar from "./delete/ModernNavbar";
 import StatsWidget from "./StatsWidget";
 import QuickActionsWidget from "./QuickActionsWidget";
 import NotificationToast from "./NotificationToast";
@@ -42,7 +42,6 @@ const ModernTodoBoard = ({ darkMode, toggleDarkMode }) => {
 
   const { user } = useUserContext();
 
-  // Chargement initial des données
   useEffect(() => {
     const loadInitialData = async () => {
       await fetchTodos();
@@ -146,7 +145,7 @@ const ModernTodoBoard = ({ darkMode, toggleDarkMode }) => {
   );
 
   return (
-    <div className="min-h-screen relative">
+    <div className="relative min-h-screen">
       {/* Notification Toast */}
       {notification && (
         <NotificationToast
@@ -165,11 +164,11 @@ const ModernTodoBoard = ({ darkMode, toggleDarkMode }) => {
       />
 
       {/* Contenu principal */}
-      <div className="px-4 sm:px-6 lg:px-8 py-8 space-y-8 relative z-10">
+      <div className="relative z-10 px-4 py-8 space-y-8 sm:px-6 lg:px-8">
         {/* En-tête avec statistiques */}
         <div className="space-y-6">
           {/* Titre et actions principales */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="space-y-1">
               <h1
                 className={`text-3xl font-bold ${
@@ -241,7 +240,7 @@ const ModernTodoBoard = ({ darkMode, toggleDarkMode }) => {
                 title="Afficher les utilisateurs"
               >
                 <FiUsers size={16} />
-                <span className="hidden sm:inline text-sm font-medium">
+                <span className="hidden text-sm font-medium sm:inline">
                   Utilisateurs
                 </span>
               </button>
@@ -249,7 +248,7 @@ const ModernTodoBoard = ({ darkMode, toggleDarkMode }) => {
               {/* Nouvelle tâche */}
               <button
                 onClick={handleCreateTodo}
-                className="flex items-center gap-2 px-6 py-2 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                className="flex items-center gap-2 px-6 py-2 text-white transition-all duration-200 rounded-lg shadow-lg bg-gradient-to-r from-blue-500 to-indigo-600 hover:shadow-xl hover:scale-105"
               >
                 <FiPlus size={16} />
                 <span className="hidden sm:inline">Nouvelle Tâche</span>
@@ -378,7 +377,7 @@ const ModernTodoBoard = ({ darkMode, toggleDarkMode }) => {
               </div>
               <button
                 onClick={handleCreateTodo}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                className="inline-flex items-center gap-2 px-6 py-3 text-white transition-all duration-200 rounded-lg shadow-lg bg-gradient-to-r from-blue-500 to-indigo-600 hover:shadow-xl hover:scale-105"
               >
                 <FiPlus size={16} />
                 Créer une tâche
@@ -427,7 +426,7 @@ const ModernTodoBoard = ({ darkMode, toggleDarkMode }) => {
 
         {/* Formulaires modaux */}
         {showCreateForm && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className="w-full max-w-md">
               <CreateTodoForm onClose={handleCloseCreateForm} />
             </div>
@@ -435,7 +434,7 @@ const ModernTodoBoard = ({ darkMode, toggleDarkMode }) => {
         )}
 
         {editingTodo && (
-          <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
             <div className="w-full max-w-md">
               <EditTodoForm todo={editingTodo} onClose={handleCloseEditForm} />
             </div>
