@@ -1,20 +1,17 @@
-import React, { useState, useMemo } from "react";
+import React, { useState } from "react";
 import { useTheme } from "../../context/useTheme.jsx";
 import { useTodoContext } from "../../context/useTodoContext.jsx";
 import { useUserContext } from "../../context/useUserContext.jsx";
-import { NotificationToast } from "../ui/index.js";
 import SimpleTodoBoard from "./SimpleTodoBoard.jsx";
 import TeamMembersList from "./TeamMembersList.jsx";
 import SimpleFloatingActions from "./SimpleFloatingActions.jsx";
 import SimpleCreateTodoForm from "./SimpleCreateTodoForm.jsx";
 import SimpleEditTodoForm from "./SimpleEditTodoForm.jsx";
+import NotificationToast from "../ui/NotificationToast.jsx";
 
-const TodoWorkspace = ({ searchTerm }) => {
+const TodoWorkspace = ({ searchTerm, user, view }) => {
   const { darkMode } = useTheme();
-  const { todos, isLoading, error, setError, fetchTodos, showAllTodos } =
-    useTodoContext();
-  const { user } = useUserContext();
-
+  const { todos, isLoading, error, setError, fetchTodos } = useTodoContext();
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTodo, setEditingTodo] = useState(null);
   const [notification, setNotification] = useState(null);
@@ -23,7 +20,6 @@ const TodoWorkspace = ({ searchTerm }) => {
   const [itemsPerStatus, setItemsPerStatus] = useState(() => {
     const saved = localStorage.getItem("todoItemsPerStatus");
     if (saved) return parseInt(saved, 10);
-
     const vh = Math.max(
       document.documentElement.clientHeight || 0,
       window.innerHeight || 0
@@ -36,7 +32,6 @@ const TodoWorkspace = ({ searchTerm }) => {
   const handleItemsPerStatusChange = (newValue) => {
     setItemsPerStatus(newValue);
     localStorage.setItem("todoItemsPerStatus", newValue.toString());
-    // Réinitialiser les pages à 1 pour tous les statuts
     setPageByStatus({
       EN_ATTENTE: 1,
       EN_COURS: 1,
@@ -45,9 +40,9 @@ const TodoWorkspace = ({ searchTerm }) => {
   };
 
   // Filtrage par recherche AVANT pagination
-  const filteredTodos = useMemo(() => {
+  const filteredTodos = React.useMemo(() => {
     let result = todos;
-    if (!showAllTodos && user) {
+    if (view === "user" && user) {
       result = todos.filter(
         (todo) => todo.userId === user.id || todo.user?.id === user.id
       );
@@ -55,12 +50,14 @@ const TodoWorkspace = ({ searchTerm }) => {
     if (searchTerm && searchTerm.trim()) {
       result = result.filter(
         (todo) =>
-          todo.titre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          todo.description?.toLowerCase().includes(searchTerm.toLowerCase())
+          (todo.titre &&
+            todo.titre.toLowerCase().includes(searchTerm.toLowerCase())) ||
+          (todo.description &&
+            todo.description.toLowerCase().includes(searchTerm.toLowerCase()))
       );
     }
     return result;
-  }, [todos, user, searchTerm, showAllTodos]);
+  }, [todos, user, searchTerm, view]);
 
   // Pagination indépendante par colonne/statut
   const [pageByStatus, setPageByStatus] = useState({
@@ -70,7 +67,7 @@ const TodoWorkspace = ({ searchTerm }) => {
   });
 
   // Filtrage par statut (pour chaque colonne) + pagination indépendante
-  const paginatedTodosByStatus = useMemo(() => {
+  const paginatedTodosByStatus = React.useMemo(() => {
     const statusList = ["EN_ATTENTE", "EN_COURS", "TERMINEE"];
     const result = {};
     statusList.forEach((status) => {
@@ -120,7 +117,6 @@ const TodoWorkspace = ({ searchTerm }) => {
           onClose={handleCloseNotification}
         />
       )}
-      {/* Barre de recherche et contrôles - uniquement en mode tâches */}
       {/* Sélecteur du nombre de tâches par statut */}
       <div className="mb-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -181,7 +177,9 @@ const TodoWorkspace = ({ searchTerm }) => {
         </div>
       )}
       {/* Liste équipe au-dessus du board en mode Équipe */}
-      {showAllTodos && <TeamMembersList showNotification={showNotification} />}
+      {view === "team" && (
+        <TeamMembersList showNotification={showNotification} />
+      )}
       {/* Board des tâches toujours affiché */}
       <SimpleTodoBoard
         todos={filteredTodos}
