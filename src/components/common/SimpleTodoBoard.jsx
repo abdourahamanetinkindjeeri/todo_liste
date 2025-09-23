@@ -1,78 +1,66 @@
-import React, { useState } from "react";
+import React from "react";
 import { useTheme } from "../../context/useTheme.jsx";
-import { useTodoContext } from "../../context/useTodoContext.jsx";
 import SimpleTodoCard from "./SimpleTodoCard.jsx";
-import { FiCheckCircle, FiClock, FiTrendingUp, FiInfo } from "react-icons/fi";
+import { Info, Plus, Clock, Play, CheckCircle } from "lucide-react";
+import Pagination from "@mui/material/Pagination";
 
 /**
- * Tableau Kanban simplifié
+ * Tableau Kanban style Quantum
  * Principe: Single Responsibility - Affiche uniquement les colonnes de todos
  * @param {Object} props
- * @param {string} props.searchTerm - Terme de recherche pour filtrer les tâches
+ * @param {Array} props.todos - Liste des todos à afficher (déjà paginés)
+ * @param {string} props.searchTerm - Terme de recherche pour filtrer les tâches (optionnel)
  * @param {Function} props.onEditTodo - Fonction appelée pour éditer une tâche
  * @param {Function} props.showNotification - Fonction pour afficher une notification
  * @param {boolean} props.isLoading - État de chargement
  */
+
+const TODO_STATUSES = {
+  EN_COURS: "EN_COURS",
+  EN_ATTENTE: "EN_ATTENTE",
+  TERMINEE: "TERMINEE",
+};
+
 const SimpleTodoBoard = ({
-  searchTerm,
+  todos = [],
+  todosByStatus = {},
   onEditTodo,
   showNotification,
   isLoading,
+  pageByStatus = {},
+  itemsPerStatus = 6,
+  onPageChangeByStatus = () => {},
+  filteredTodos = [],
 }) => {
   const { darkMode } = useTheme();
-  const { todosByStatus, TODO_STATUSES } = useTodoContext();
 
-  // Configuration des colonnes
+  // Configuration des colonnes style Quantum avec icônes
   const columns = [
     {
       status: TODO_STATUSES.EN_ATTENTE,
-      title: "À faire",
-      icon: FiClock,
-      color: "amber",
+      title: TODO_STATUSES.EN_ATTENTE,
+      // subtitle: "NEW TASK",
+      icon: Clock,
+      iconColor: darkMode ? "text-orange-400" : "text-orange-600",
       todos: todosByStatus[TODO_STATUSES.EN_ATTENTE] || [],
     },
     {
       status: TODO_STATUSES.EN_COURS,
-      title: "En cours",
-      icon: FiTrendingUp,
-      color: "blue",
+      title: TODO_STATUSES.EN_COURS,
+      // subtitle: "NEW TASK",
+      icon: Play,
+      iconColor: darkMode ? "text-blue-400" : "text-blue-600",
       todos: todosByStatus[TODO_STATUSES.EN_COURS] || [],
     },
     {
       status: TODO_STATUSES.TERMINEE,
-      title: "Terminé",
-      icon: FiCheckCircle,
-      color: "emerald",
+      title: TODO_STATUSES.TERMINEE,
+      // subtitle: "NEW TASK",
+      icon: CheckCircle,
+      iconColor: darkMode ? "text-green-400" : "text-green-600",
       todos: todosByStatus[TODO_STATUSES.TERMINEE] || [],
     },
   ];
-
-  // Filtrer les todos selon la recherche
-  const filterTodos = (todos) => {
-    if (!searchTerm) return todos;
-    return todos.filter(
-      (todo) =>
-        todo.libelle?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        todo.description?.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  };
-
-  const totalTodos = Object.values(todosByStatus).reduce(
-    (acc, todos) => acc + todos.length,
-    0
-  );
-
-  const defaultPageSize = 3;
-  const [pageSizes, setPageSizes] = useState({
-    [TODO_STATUSES.EN_ATTENTE]: defaultPageSize,
-    [TODO_STATUSES.EN_COURS]: defaultPageSize,
-    [TODO_STATUSES.TERMINEE]: defaultPageSize,
-  });
-  const [pages, setPages] = useState({
-    [TODO_STATUSES.EN_ATTENTE]: 1,
-    [TODO_STATUSES.EN_COURS]: 1,
-    [TODO_STATUSES.TERMINEE]: 1,
-  });
 
   if (isLoading) {
     return (
@@ -87,6 +75,7 @@ const SimpleTodoBoard = ({
     );
   }
 
+  const totalTodos = todos.length;
   if (totalTodos === 0) {
     return (
       <div
@@ -96,7 +85,7 @@ const SimpleTodoBoard = ({
             : "bg-white/50 border-gray-200 text-gray-600"
         }`}
       >
-        <FiInfo className="mx-auto mb-4" size={48} aria-hidden="true" />
+        <Info className="mx-auto mb-4" size={48} aria-hidden="true" />
         <h3
           className={`text-lg font-semibold mb-2 ${
             darkMode ? "text-white" : "text-gray-900"
@@ -113,71 +102,67 @@ const SimpleTodoBoard = ({
     <div className="space-y-6">
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         {columns.map((column) => {
-          const Icon = column.icon;
-          const filteredTodos = filterTodos(column.todos);
-          const pageSize = pageSizes[column.status];
-          const page = pages[column.status];
-          const totalPages = Math.max(
-            1,
-            Math.ceil(filteredTodos.length / pageSize)
-          );
-          const columnPaginatedTodos = filteredTodos.slice(
-            (page - 1) * pageSize,
-            page * pageSize
-          );
-          const sizeOptions = [3, 5, 10, 20]
-            .filter((size) => size < filteredTodos.length)
-            .concat(filteredTodos.length)
-            .filter((v, i, arr) => arr.indexOf(v) === i && v > 0);
+          const total = filteredTodos.filter(
+            (todo) => todo.status === column.status
+          ).length;
+          const pages = Math.ceil(total / itemsPerStatus);
+
           return (
             <div key={column.status} className="space-y-4">
-              {/* En-tête de colonne */}
+              {/* En-tête de colonne style Quantum compact */}
               <div
-                className={`flex items-center gap-3 p-4 rounded-xl border ${
+                className={`rounded-lg border ${
                   darkMode
-                    ? "bg-gray-800/30 border-gray-700/50"
-                    : "bg-white/50 border-gray-200"
+                    ? "bg-gray-800/50 border-gray-700/50"
+                    : "bg-white border-gray-200"
                 }`}
               >
-                <div
-                  className={`p-2 rounded-lg ${
-                    column.color === "amber"
-                      ? darkMode
-                        ? "bg-amber-500/20 text-amber-400"
-                        : "bg-amber-100 text-amber-600"
-                      : column.color === "blue"
-                      ? darkMode
-                        ? "bg-blue-500/20 text-blue-400"
-                        : "bg-blue-100 text-blue-600"
-                      : darkMode
-                      ? "bg-emerald-500/20 text-emerald-400"
-                      : "bg-emerald-100 text-emerald-600"
-                  }`}
-                >
-                  <Icon size={20} aria-hidden="true" />
-                </div>
-                <div className="flex-1">
-                  <h3
-                    className={`font-semibold ${
-                      darkMode ? "text-white" : "text-gray-900"
-                    }`}
-                  >
-                    {column.title}
-                  </h3>
-                  <p
-                    className={`text-sm ${
-                      darkMode ? "text-gray-400" : "text-gray-600"
-                    }`}
-                  >
-                    {filteredTodos.length} tâche
-                    {filteredTodos.length !== 1 ? "s" : ""}
-                  </p>
+                <div className="p-3">
+                  <div className="flex items-center justify-between mb-1">
+                    <div className="flex items-center gap-2">
+                      <column.icon className={`w-4 h-4 ${column.iconColor}`} />
+                      <h3
+                        className={`font-semibold text-sm ${
+                          darkMode ? "text-white" : "text-gray-900"
+                        }`}
+                      >
+                        {column.title}
+                      </h3>
+                    </div>
+                    {/* <button
+                      className={`p-1 rounded hover:bg-gray-100 ${
+                        darkMode
+                          ? "hover:bg-gray-700 text-gray-400"
+                          : "text-gray-500"
+                      }`}
+                    >
+                      <Plus className="w-4 h-4" />
+                    </button> */}
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span
+                      className={`text-xs font-medium px-2 py-1 rounded ${
+                        darkMode
+                          ? "bg-blue-600/20 text-blue-400"
+                          : "bg-blue-100 text-blue-600"
+                      }`}
+                    >
+                      {column.subtitle}
+                    </span>
+                    <span
+                      className={`text-xs ${
+                        darkMode ? "text-gray-400" : "text-gray-500"
+                      }`}
+                    >
+                      {total} tâche{total !== 1 ? "s" : ""}
+                    </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Liste des todos paginée */}
-              <div className="space-y-3 min-h-[200px]">
-                {columnPaginatedTodos.map((todo) => (
+              {/* Liste des todos de la colonne */}
+              <div className="space-y-3 min-h-[400px]">
+                {column.todos.map((todo) => (
                   <SimpleTodoCard
                     key={todo.id}
                     todo={todo}
@@ -185,7 +170,7 @@ const SimpleTodoBoard = ({
                     showNotification={showNotification}
                   />
                 ))}
-                {columnPaginatedTodos.length === 0 && (
+                {column.todos.length === 0 && (
                   <div
                     className={`text-center py-8 border-2 border-dashed rounded-xl ${
                       darkMode
@@ -193,86 +178,43 @@ const SimpleTodoBoard = ({
                         : "border-gray-300 text-gray-400"
                     }`}
                   >
-                    <Icon
-                      className="mx-auto mb-2"
-                      size={24}
-                      aria-hidden="true"
-                    />
+                    <Plus size={20} className="mx-auto mb-2 opacity-50" />
                     <p className="text-sm">Aucune tâche</p>
                   </div>
                 )}
               </div>
 
-              {/* Pagination par colonne */}
-              {filteredTodos.length > 0 && (
-                <div className="flex items-center justify-center gap-2 mt-2">
-                  <button
-                    className={`px-2 py-1 rounded font-medium text-xs ${
-                      darkMode
-                        ? "bg-gray-700 text-white hover:bg-gray-600"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    onClick={() =>
-                      setPages((prev) => ({
-                        ...prev,
-                        [column.status]: Math.max(1, page - 1),
-                      }))
+              {/* Pagination compacte sous la colonne */}
+              {pages > 1 && (
+                <div className="flex justify-center mt-4">
+                  <Pagination
+                    count={pages}
+                    page={pageByStatus[column.status] || 1}
+                    onChange={(_, value) =>
+                      onPageChangeByStatus(column.status, value)
                     }
-                    disabled={page === 1}
-                  >
-                    Précédent
-                  </button>
-                  <span className="text-xs font-medium">
-                    Page {page} / {totalPages}
-                  </span>
-                  <button
-                    className={`px-2 py-1 rounded font-medium text-xs ${
-                      darkMode
-                        ? "bg-gray-700 text-white hover:bg-gray-600"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    } disabled:opacity-50 disabled:cursor-not-allowed`}
-                    onClick={() =>
-                      setPages((prev) => ({
-                        ...prev,
-                        [column.status]: Math.min(totalPages, page + 1),
-                      }))
-                    }
-                    disabled={page === totalPages}
-                  >
-                    Suivant
-                  </button>
-                  <select
-                    className={`px-2 py-1 rounded font-medium text-xs ${
-                      darkMode
-                        ? "bg-gray-700 text-white"
-                        : "bg-gray-200 text-gray-700"
-                    }`}
-                    value={pageSize}
-                    onChange={(e) => {
-                      setPageSizes((prev) => ({
-                        ...prev,
-                        [column.status]: Number(e.target.value),
-                      }));
-                      setPages((prev) => ({
-                        ...prev,
-                        [column.status]: 1,
-                      }));
+                    color="primary"
+                    size="small"
+                    shape="rounded"
+                    sx={{
+                      "& .MuiPaginationItem-root": {
+                        color: darkMode ? "#e5e7eb" : "#374151",
+                        "&.Mui-selected": {
+                          backgroundColor: darkMode ? "#3b82f6" : "#3b82f6",
+                          color: "white",
+                        },
+                        "&:hover": {
+                          backgroundColor: darkMode ? "#374151" : "#f3f4f6",
+                        },
+                      },
                     }}
-                  >
-                    {sizeOptions.map((size) => (
-                      <option key={size} value={size}>
-                        {size} / page
-                      </option>
-                    ))}
-                  </select>
+                  />
                 </div>
               )}
             </div>
           );
         })}
       </div>
-
-      {/* ...pagination globale supprimée... */}
     </div>
   );
 };

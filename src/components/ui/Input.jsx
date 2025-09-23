@@ -36,7 +36,7 @@ const Input = forwardRef(({
       {label && (
         <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
           {label}
-          {required && <span className="text-red-500 ml-1">*</span>}
+          {required && <span className="ml-1 text-red-500">*</span>}
         </label>
       )}
       <input

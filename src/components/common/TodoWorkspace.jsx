@@ -1,24 +1,100 @@
-import React, { useState } from "react";
+import React, { useState, useMemo } from "react";
 import { useTheme } from "../../context/useTheme.jsx";
 import { useTodoContext } from "../../context/useTodoContext.jsx";
+import { useUserContext } from "../../context/useUserContext.jsx";
 import { NotificationToast } from "../ui/index.js";
 import SimpleTodoBoard from "./SimpleTodoBoard.jsx";
+import TeamMembersList from "./TeamMembersList.jsx";
 import SimpleFloatingActions from "./SimpleFloatingActions.jsx";
 import SimpleCreateTodoForm from "./SimpleCreateTodoForm.jsx";
 import SimpleEditTodoForm from "./SimpleEditTodoForm.jsx";
 import SearchBar from "./SearchBar.jsx";
 
 /**
- * Espace de travail principal pour la gestion des tâches
+ * Espace de travail principal pour la gestion des tâches style Quantum
  */
+
 const TodoWorkspace = () => {
   const { darkMode } = useTheme();
-  const { isLoading, error, setError, fetchTodos } = useTodoContext();
+  const { todos, isLoading, error, setError, fetchTodos, showAllTodos } =
+    useTodoContext();
+  const { user } = useUserContext();
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTodo, setEditingTodo] = useState(null);
   const [searchTerm, setSearchTerm] = useState("");
   const [notification, setNotification] = useState(null);
+
+  // Sélecteur pour le nombre de todos par page PAR statut
+  const [itemsPerStatus, setItemsPerStatus] = useState(() => {
+    const saved = localStorage.getItem("todoItemsPerStatus");
+    if (saved) return parseInt(saved, 10);
+
+    const vh = Math.max(
+      document.documentElement.clientHeight || 0,
+      window.innerHeight || 0
+    );
+    const estimate = Math.max(3, Math.floor((vh - 300) / 120));
+    return estimate;
+  });
+
+  // Sauvegarder la préférence dans localStorage
+  const handleItemsPerStatusChange = (newValue) => {
+    setItemsPerStatus(newValue);
+    localStorage.setItem("todoItemsPerStatus", newValue.toString());
+    // Réinitialiser les pages à 1 pour tous les statuts
+    setPageByStatus({
+      EN_ATTENTE: 1,
+      EN_COURS: 1,
+      TERMINEE: 1,
+    });
+  };
+
+  // Filtrage par recherche AVANT pagination
+  const filteredTodos = useMemo(() => {
+    let result = todos;
+
+    // Filtrage par onglet : si showAllTodos = false, ne garder que les tâches de l'utilisateur courant
+    if (!showAllTodos && user) {
+      result = todos.filter(
+        (todo) => todo.userId === user.id || todo.user?.id === user.id
+      );
+    }
+    // Si showAllTodos = true, on garde tous les todos (équipe)
+
+    // Filtrage par terme de recherche
+    if (searchTerm.trim()) {
+      result = result.filter(
+        (todo) =>
+          todo.titre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+          todo.description?.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+
+    return result;
+  }, [todos, user, searchTerm, showAllTodos]);
+
+  // Pagination indépendante par colonne/statut
+  const [pageByStatus, setPageByStatus] = useState({
+    EN_ATTENTE: 1,
+    EN_COURS: 1,
+    TERMINEE: 1,
+  });
+
+  // Filtrage par statut (pour chaque colonne) + pagination indépendante
+  const paginatedTodosByStatus = useMemo(() => {
+    const statusList = ["EN_ATTENTE", "EN_COURS", "TERMINEE"];
+    const result = {};
+    statusList.forEach((status) => {
+      const todosForStatus = filteredTodos.filter(
+        (todo) => todo.status === status
+      );
+      const start = (pageByStatus[status] - 1) * itemsPerStatus;
+      const end = start + itemsPerStatus;
+      result[status] = todosForStatus.slice(start, end);
+    });
+    return result;
+  }, [filteredTodos, itemsPerStatus, pageByStatus]);
 
   const showNotification = (type, message) => {
     setNotification({ type, message, id: Date.now() });
@@ -41,6 +117,11 @@ const TodoWorkspace = () => {
     setNotification(null);
   };
 
+  // Gestion du changement de page par colonne
+  const handlePageChange = (status, value) => {
+    setPageByStatus((prev) => ({ ...prev, [status]: value }));
+  };
+
   return (
     <div className="px-6 pb-8 space-y-6">
       {/* Notification */}
@@ -51,18 +132,59 @@ const TodoWorkspace = () => {
           onClose={handleCloseNotification}
         />
       )}
+      {/* Barre de recherche et contrôles - uniquement en mode tâches */}
+      {!showAllTodos && (
+        <div className="mb-6 space-y-4">
+          <SearchBar
+            searchTerm={searchTerm}
+            onSearchChange={setSearchTerm}
+            darkMode={darkMode}
+          />
 
-      {/* Barre de recherche */}
-      <SearchBar
-        searchTerm={searchTerm}
-        onSearchChange={setSearchTerm}
-        darkMode={darkMode}
-      />
+          {/* Sélecteur du nombre de tâches par statut */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <span
+                className={`text-sm font-medium ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                Tâches par colonne :
+              </span>
+              <select
+                value={itemsPerStatus}
+                onChange={(e) =>
+                  handleItemsPerStatusChange(parseInt(e.target.value, 10))
+                }
+                className={`px-3 py-1 rounded-lg border text-sm outline-none ${
+                  darkMode
+                    ? "bg-gray-800 border-gray-700 text-white"
+                    : "bg-white border-gray-300 text-gray-900"
+                }`}
+              >
+                <option value={3}>3 tâches</option>
+                <option value={5}>5 tâches</option>
+                <option value={8}>8 tâches</option>
+                <option value={10}>10 tâches</option>
+                <option value={15}>15 tâches</option>
+              </select>
+            </div>
 
+            <div
+              className={`text-sm ${
+                darkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              Total : {filteredTodos.length} tâche
+              {filteredTodos.length !== 1 ? "s" : ""}
+            </div>
+          </div>
+        </div>
+      )}{" "}
       {/* Message d'erreur */}
       {error && (
         <div
-          className={`p-4 rounded-xl border ${
+          className={`p-4 rounded-lg border ${
             darkMode
               ? "bg-red-900/20 border-red-800/30 text-red-400"
               : "bg-red-50 border-red-200 text-red-800"
@@ -83,22 +205,40 @@ const TodoWorkspace = () => {
           </div>
         </div>
       )}
-
-      {/* Board des tâches */}
-      <SimpleTodoBoard
-        searchTerm={searchTerm}
-        onEditTodo={handleEditTodo}
-        showNotification={showNotification}
-        isLoading={isLoading}
-      />
-
+      {/* Board des tâches et liste équipe en mode Équipe */}
+      {showAllTodos ? (
+          <div className="mt-8">
+            <SimpleTodoBoard
+              todos={filteredTodos}
+              todosByStatus={paginatedTodosByStatus}
+              onEditTodo={handleEditTodo}
+              showNotification={showNotification}
+              isLoading={isLoading}
+              pageByStatus={pageByStatus}
+              itemsPerStatus={itemsPerStatus}
+              onPageChangeByStatus={handlePageChange}
+              filteredTodos={filteredTodos}
+            />
+          </div>
+      ) : (
+        <SimpleTodoBoard
+          todos={filteredTodos}
+          todosByStatus={paginatedTodosByStatus}
+          onEditTodo={handleEditTodo}
+          showNotification={showNotification}
+          isLoading={isLoading}
+          pageByStatus={pageByStatus}
+          itemsPerStatus={itemsPerStatus}
+          onPageChangeByStatus={handlePageChange}
+          filteredTodos={filteredTodos}
+        />
+      )}
       {/* Actions flottantes */}
       <SimpleFloatingActions
         onCreateTodo={handleCreateTodo}
         onRefresh={handleRefresh}
         isLoading={isLoading}
       />
-
       {/* Modal de création */}
       {showCreateForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
@@ -111,7 +251,6 @@ const TodoWorkspace = () => {
           />
         </div>
       )}
-
       {/* Modal d'édition */}
       {editingTodo && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">

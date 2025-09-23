@@ -131,6 +131,7 @@ const LoginPage = ({ onSwitchToSignup }) => {
                 error={errors.password}
                 className="pl-10 pr-10"
                 autoComplete="current-password"
+                
               />
               <button
                 type="button"

@@ -3,19 +3,12 @@ import { useTodoContext } from "../../context/useTodoContext.jsx";
 import { useUserContext } from "../../context/useUserContext.jsx";
 import { useTheme } from "../../context/useTheme.jsx";
 import { Button } from "../ui/index.js";
-import {
-  FiEdit3,
-  FiTrash2,
-  FiUser,
-  FiClock,
-  FiImage,
-  FiMoreVertical,
-} from "react-icons/fi";
+import { Pencil, Trash2, User, Clock, Calendar } from "lucide-react";
 import { API_BASE_URL, API_ENDPOINTS } from "../../constants/api.js";
 import ReactDOM from "react-dom";
 
 /**
- * Carte de tâche simplifiée
+ * Carte de tâche style Quantum
  * @param {Object} props
  * @param {Object} props.todo - Objet tâche
  * @param {Function} props.onEdit - Fonction appelée pour éditer la tâche
@@ -57,10 +50,6 @@ const SimpleTodoCard = ({ todo, onEdit, showNotification }) => {
         .finally(() => setLoadingUsers(false));
     }
   }, [showDelegateModal, token]);
-
-  const handleDelegate = () => {
-    setShowDelegateModal(true);
-  };
 
   const { changeStatus, deleteTodo, TODO_STATUSES, delegateTodo } =
     useTodoContext();
@@ -159,32 +148,6 @@ const SimpleTodoCard = ({ todo, onEdit, showNotification }) => {
     }
   };
 
-  const getStatusColor = () => {
-    switch (todo.statut) {
-      case TODO_STATUSES.EN_ATTENTE:
-        return darkMode ? "text-amber-400" : "text-amber-600";
-      case TODO_STATUSES.EN_COURS:
-        return darkMode ? "text-blue-400" : "text-blue-600";
-      case TODO_STATUSES.TERMINEE:
-        return darkMode ? "text-emerald-400" : "text-emerald-600";
-      default:
-        return darkMode ? "text-gray-400" : "text-gray-600";
-    }
-  };
-
-  const getStatusLabel = () => {
-    switch (todo.statut) {
-      case TODO_STATUSES.EN_ATTENTE:
-        return "En attente";
-      case TODO_STATUSES.EN_COURS:
-        return "En cours";
-      case TODO_STATUSES.TERMINEE:
-        return "Terminée";
-      default:
-        return "Inconnu";
-    }
-  };
-
   // Remplacement du rendu direct des modals par ReactDOM.createPortal
   function ModalOverlay({ children }) {
     return ReactDOM.createPortal(
@@ -203,10 +166,8 @@ const SimpleTodoCard = ({ todo, onEdit, showNotification }) => {
 
   return (
     <div
-      className={`p-4 rounded-xl border transition-all duration-200 hover:scale-[1.02] ${
-        darkMode
-          ? "bg-gray-800/50 border-gray-700/50 hover:bg-gray-800/70"
-          : "bg-white/70 border-gray-200 hover:bg-white"
+      className={`h-48 rounded-lg border transition-all duration-200 hover:shadow-md ${
+        darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
       }`}
     >
       {/* Modal de confirmation suppression */}
@@ -225,7 +186,7 @@ const SimpleTodoCard = ({ todo, onEdit, showNotification }) => {
                   darkMode ? "bg-red-900/30" : "bg-red-100"
                 }`}
               >
-                <FiTrash2
+                <Trash2
                   size={28}
                   className={darkMode ? "text-red-400" : "text-red-600"}
                 />
@@ -264,193 +225,158 @@ const SimpleTodoCard = ({ todo, onEdit, showNotification }) => {
           </div>
         </ModalOverlay>
       )}
-      {/* En-tête avec titre */}
-      <div className="flex items-start justify-between mb-3">
-        <h4
-          className={`font-semibold text-sm ${
-            darkMode ? "text-white" : "text-gray-900"
-          }`}
-        >
-          {todo.titre || todo.libelle}
-        </h4>
-      </div>
 
-      {/* Boutons d'action visibles */}
-      {canModify && (
-        <div className="flex justify-end gap-2 mb-3">
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`flex items-center gap-1 px-3 py-1 rounded-lg font-medium ${
-              darkMode
-                ? "text-blue-300 hover:bg-blue-900/30"
-                : "text-blue-700 hover:bg-blue-50"
-            }`}
-            onClick={() => onEdit(todo)}
-          >
-            <FiEdit3 size={14} /> Modifier
-          </Button>
-          <Button
-            variant="danger"
-            size="sm"
-            className={`flex items-center gap-1 px-3 py-1 rounded-lg font-medium ${
-              darkMode
-                ? "text-red-300 hover:bg-red-900/30"
-                : "text-red-600 hover:bg-red-50"
-            }`}
-            onClick={handleDelete}
-            disabled={isDeleting}
-          >
-            <FiTrash2 size={14} /> {isDeleting ? "..." : "Supprimer"}
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            className={`flex items-center gap-1 px-3 py-1 rounded-lg font-medium ${
-              darkMode
-                ? "text-amber-300 hover:bg-amber-900/30"
-                : "text-amber-600 hover:bg-amber-50"
-            }`}
-            onClick={handleDelegate}
-          >
-            <FiUser size={14} /> Déléguer
-          </Button>
-          {/* Modal de délégation moderne */}
-          {showDelegateModal && (
-            <ModalOverlay>
+      {/* Partie supérieure - Hauteur 1/2 */}
+      <div className="h-1/2 flex">
+        {/* Photo - Largeur 1/2 */}
+        <div className="w-1/2 overflow-hidden rounded-tl-lg">
+          {todo.photo ? (
+            <img
+              src={`http://localhost:8888/${todo.photo}`}
+              alt="Illustration"
+              className="object-cover w-full h-full"
+            />
+          ) : (
+            <div
+              className={`w-full h-full flex items-center justify-center ${
+                darkMode ? "bg-gray-700" : "bg-gray-100"
+              }`}
+            >
               <div
-                className={`p-6 rounded-2xl shadow-2xl w-full max-w-sm border ${
-                  darkMode
-                    ? "bg-gray-900 text-white border-gray-700"
-                    : "bg-white text-gray-900 border-gray-200"
-                } animate-pop-in`}
+                className={`text-2xl font-bold ${
+                  darkMode ? "text-gray-500" : "text-gray-400"
+                }`}
               >
-                <div className="flex flex-col items-center">
-                  <div
-                    className={`mb-3 flex items-center justify-center w-12 h-12 rounded-full ${
-                      darkMode ? "bg-amber-900/30" : "bg-amber-100"
-                    }`}
-                  >
-                    <FiUser
-                      size={28}
-                      className={darkMode ? "text-amber-300" : "text-amber-600"}
-                    />
-                  </div>
-                  <h3 className="mb-1 text-lg font-bold text-center">
-                    Déléguer la tâche
-                  </h3>
-                  <p
-                    className={`mb-5 text-sm text-center ${
-                      darkMode ? "text-gray-300" : "text-gray-600"
-                    }`}
-                  >
-                    Choisissez l'utilisateur à qui déléguer cette tâche.
-                  </p>
-                  <select
-                    className={`mb-4 w-full px-3 py-2 rounded-lg border outline-none ${
-                      darkMode
-                        ? "bg-gray-800 text-white border-gray-700"
-                        : "bg-gray-100 text-gray-900 border-gray-300"
-                    }`}
-                    value={delegateUser}
-                    onChange={(e) => setDelegateUser(e.target.value)}
-                    disabled={loadingUsers || !!usersError}
-                  >
-                    <option value="">
-                      {loadingUsers
-                        ? "Chargement..."
-                        : "Sélectionner un utilisateur"}
-                    </option>
-                    {usersList.map((user) => (
-                      <option key={user.id} value={user.id}>
-                        {user.prenom || user.name || user.email}
-                      </option>
-                    ))}
-                  </select>
-                  {usersError && (
-                    <div className="mb-2 text-sm text-center text-red-500">
-                      {usersError}
-                    </div>
-                  )}
-                  <div className="flex justify-center w-full gap-3">
-                    <Button
-                      variant="primary"
-                      onClick={confirmDelegate}
-                      className="px-4 py-2 font-semibold rounded-lg shadow-sm"
-                    >
-                      Valider
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      onClick={() => setShowDelegateModal(false)}
-                      className="px-4 py-2 font-semibold rounded-lg"
-                    >
-                      Annuler
-                    </Button>
-                  </div>
-                </div>
+                {(todo.titre || todo.libelle || "T").charAt(0).toUpperCase()}
               </div>
-            </ModalOverlay>
+            </div>
           )}
         </div>
-      )}
 
-      {/* Description */}
-      {todo.description && (
-        <p
-          className={`text-sm mb-3 ${
-            darkMode ? "text-gray-400" : "text-gray-600"
-          }`}
-        >
-          {todo.description.length > 100
-            ? `${todo.description.substring(0, 100)}...`
-            : todo.description}
-        </p>
-      )}
+        {/* Informations principales - Largeur 1/2 */}
+        <div className="w-1/2 p-3 flex flex-col justify-between">
+          {/* En-tête avec titre et actions */}
+          <div className="flex items-start justify-between mb-2">
+            <h4
+              className={`font-semibold text-sm leading-tight flex-1 ${
+                darkMode ? "text-white" : "text-gray-900"
+              }`}
+            >
+              {todo.titre || todo.libelle}
+            </h4>
 
-      {/* Photo si disponible */}
-      {todo.photo && (
-        <img
-          src={`http://localhost:8888/${todo.photo}`}
-          alt="Illustration"
-          className="object-cover w-full h-20 mb-3 rounded-lg"
-        />
-      )}
+            {canModify && (
+              <div className="flex gap-1 ml-2">
+                <button
+                  title="Éditer"
+                  className={`p-1 rounded transition-colors ${
+                    darkMode
+                      ? "text-gray-400 hover:text-blue-400 hover:bg-gray-700"
+                      : "text-gray-500 hover:text-blue-600 hover:bg-gray-100"
+                  }`}
+                  onClick={() => onEdit(todo)}
+                >
+                  <Pencil size={12} />
+                </button>
+                <button
+                  title="Supprimer"
+                  className={`p-1 rounded transition-colors ${
+                    darkMode
+                      ? "text-gray-400 hover:text-red-400 hover:bg-gray-700"
+                      : "text-gray-500 hover:text-red-600 hover:bg-gray-100"
+                  }`}
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                >
+                  <Trash2 size={12} />
+                </button>
+                <button
+                  title="Déléguer"
+                  className={`p-1 rounded transition-colors ${
+                    darkMode
+                      ? "text-gray-400 hover:text-amber-400 hover:bg-gray-700"
+                      : "text-gray-500 hover:text-amber-600 hover:bg-gray-100"
+                  }`}
+                  onClick={() => setShowDelegateModal(true)}
+                >
+                  <User size={12} />
+                </button>
+              </div>
+            )}
+          </div>
 
-      {/* Informations supplémentaires */}
-      <div className="flex items-center gap-2 mb-3 text-xs">
-        <FiUser
-          size={12}
-          className={darkMode ? "text-gray-400" : "text-gray-500"}
-        />
-        <span className={darkMode ? "text-gray-400" : "text-gray-600"}>
-          {todo.user?.prenom || todo.user?.name || "Utilisateur"}
-        </span>
+          {/* Informations utilisateur et date */}
+          <div className="space-y-1">
+            <div className="flex items-center gap-2">
+              <div
+                className={`w-5 h-5 rounded-full flex items-center justify-center text-xs font-medium ${
+                  darkMode
+                    ? "bg-blue-600 text-white"
+                    : "bg-blue-100 text-blue-600"
+                }`}
+              >
+                {(todo.user?.prenom || todo.user?.name || "U")
+                  .charAt(0)
+                  .toUpperCase()}
+              </div>
+              <span
+                className={`text-xs ${
+                  darkMode ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                {todo.user?.prenom || todo.user?.name || "Utilisateur"}
+              </span>
+            </div>
 
-        <FiClock
-          size={12}
-          className={darkMode ? "text-gray-400" : "text-gray-500"}
-        />
-        <span className={darkMode ? "text-gray-400" : "text-gray-600"}>
-          {new Date(todo.createdAt).toLocaleDateString()}
-        </span>
+            <div className="flex items-center gap-2">
+              <Calendar
+                size={10}
+                className={darkMode ? "text-gray-400" : "text-gray-500"}
+              />
+              <span
+                className={`text-xs ${
+                  darkMode ? "text-gray-400" : "text-gray-500"
+                }`}
+              >
+                {todo.createdAt
+                  ? new Date(todo.createdAt).toLocaleDateString("fr-FR", {
+                      day: "numeric",
+                      month: "short",
+                    })
+                  : ""}
+              </span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Statut */}
-      <div className="flex items-center justify-between">
-        <span className={`text-xs font-medium ${getStatusColor()}`}>
-          {getStatusLabel()}
-        </span>
+      {/* Partie inférieure - Hauteur 1/2 */}
+      <div className="h-1/2 p-3 flex flex-col">
+        {/* Description */}
+        <div className="flex-1 mb-2">
+          {todo.description && (
+            <p
+              className={`text-xs leading-relaxed ${
+                darkMode ? "text-gray-400" : "text-gray-600"
+              }`}
+            >
+              {todo.description.length > 60
+                ? `${todo.description.substring(0, 60)}...`
+                : todo.description}
+            </p>
+          )}
+        </div>
 
+        {/* Boutons d'action pour changement de statut */}
         {canModify && (
-          <div className="flex gap-1">
+          <div className="flex gap-1 pt-2 border-t border-gray-200 dark:border-gray-700">
             {todo.statut !== TODO_STATUSES.EN_ATTENTE && (
               <Button
                 size="sm"
                 variant="ghost"
                 onClick={() => handleStatusChange(TODO_STATUSES.EN_ATTENTE)}
                 disabled={isChangingStatus}
-                className="text-xs"
+                className="text-xs flex-1 py-1"
               >
                 À faire
               </Button>
@@ -461,7 +387,7 @@ const SimpleTodoCard = ({ todo, onEdit, showNotification }) => {
                 variant="ghost"
                 onClick={() => handleStatusChange(TODO_STATUSES.EN_COURS)}
                 disabled={isChangingStatus}
-                className="text-xs"
+                className="text-xs flex-1 py-1"
               >
                 En cours
               </Button>
@@ -472,7 +398,7 @@ const SimpleTodoCard = ({ todo, onEdit, showNotification }) => {
                 variant="ghost"
                 onClick={() => handleStatusChange(TODO_STATUSES.TERMINEE)}
                 disabled={isChangingStatus}
-                className="text-xs"
+                className="text-xs flex-1 py-1"
               >
                 Terminé
               </Button>
@@ -480,6 +406,84 @@ const SimpleTodoCard = ({ todo, onEdit, showNotification }) => {
           </div>
         )}
       </div>
+
+      {/* Modal de délégation moderne */}
+      {showDelegateModal && (
+        <ModalOverlay>
+          <div
+            className={`p-6 rounded-2xl shadow-2xl w-full max-w-sm border ${
+              darkMode
+                ? "bg-gray-900 text-white border-gray-700"
+                : "bg-white text-gray-900 border-gray-200"
+            } animate-pop-in`}
+          >
+            <div className="flex flex-col items-center">
+              <div
+                className={`mb-3 flex items-center justify-center w-12 h-12 rounded-full ${
+                  darkMode ? "bg-amber-900/30" : "bg-amber-100"
+                }`}
+              >
+                <User
+                  size={28}
+                  className={darkMode ? "text-amber-300" : "text-amber-600"}
+                />
+              </div>
+              <h3 className="mb-1 text-lg font-bold text-center">
+                Déléguer la tâche
+              </h3>
+              <p
+                className={`mb-5 text-sm text-center ${
+                  darkMode ? "text-gray-300" : "text-gray-600"
+                }`}
+              >
+                Choisissez l'utilisateur à qui déléguer cette tâche.
+              </p>
+              <select
+                className={`mb-4 w-full px-3 py-2 rounded-lg border outline-none ${
+                  darkMode
+                    ? "bg-gray-800 text-white border-gray-700"
+                    : "bg-gray-100 text-gray-900 border-gray-300"
+                }`}
+                value={delegateUser}
+                onChange={(e) => setDelegateUser(e.target.value)}
+                disabled={loadingUsers || !!usersError}
+              >
+                <option value="">
+                  {loadingUsers
+                    ? "Chargement..."
+                    : "Sélectionner un utilisateur"}
+                </option>
+                {usersList.map((user) => (
+                  <option key={user.id} value={user.id}>
+                    {user.prenom || user.name || user.email}
+                  </option>
+                ))}
+              </select>
+              {usersError && (
+                <div className="mb-2 text-sm text-center text-red-500">
+                  {usersError}
+                </div>
+              )}
+              <div className="flex justify-center w-full gap-3">
+                <Button
+                  variant="primary"
+                  onClick={confirmDelegate}
+                  className="px-4 py-2 font-semibold rounded-lg shadow-sm"
+                >
+                  Valider
+                </Button>
+                <Button
+                  variant="ghost"
+                  onClick={() => setShowDelegateModal(false)}
+                  className="px-4 py-2 font-semibold rounded-lg"
+                >
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          </div>
+        </ModalOverlay>
+      )}
     </div>
   );
 };

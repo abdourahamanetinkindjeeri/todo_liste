@@ -368,46 +368,46 @@ export function TodoProvider({ children }) {
     }
   };
 
-  // Supprimer la délégation
-  const removeDelegation = async (id) => {
-    setError(null);
-    try {
-      const response = await fetch(
-        `http://localhost:8888/todos/${id}/delegate`,
-        {
-          method: "DELETE",
-          headers: getAuthHeaders(),
-        }
-      );
-      if (response.ok) {
-        const responseData = await response.json();
-        const updatedTodo = responseData.data || responseData;
-        setTodos((prev) =>
-          prev.map((todo) => (todo.id === id ? updatedTodo : todo))
-        );
-        // Rafraîchir la liste après suppression de délégation
-        await fetchTodos();
-        return { success: true, data: updatedTodo };
-      } else {
-        const errorText = await response.text();
-        let errorMessage = `Erreur ${response.status}: ${response.statusText}`;
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage = errorData.message || errorMessage;
-        } catch {
-          errorMessage = errorText.includes("<!DOCTYPE")
-            ? "Erreur serveur lors de la suppression de délégation"
-            : errorText;
-        }
-        setError(errorMessage);
-        return { success: false, error: errorMessage };
-      }
-    } catch (err) {
-      const errorMessage = "Impossible de contacter le serveur";
-      setError(errorMessage);
-      return { success: false, error: errorMessage };
-    }
-  };
+  // // Supprimer la délégation
+  // const removeDelegation = async (id) => {
+  //   setError(null);
+  //   try {
+  //     const response = await fetch(
+  //       `http://localhost:8888/todos/${id}/delegate`,
+  //       {
+  //         method: "DELETE",
+  //         headers: getAuthHeaders(),
+  //       }
+  //     );
+  //     if (response.ok) {
+  //       const responseData = await response.json();
+  //       const updatedTodo = responseData.data || responseData;
+  //       setTodos((prev) =>
+  //         prev.map((todo) => (todo.id === id ? updatedTodo : todo))
+  //       );
+  //       // Rafraîchir la liste après suppression de délégation
+  //       await fetchTodos();
+  //       return { success: true, data: updatedTodo };
+  //     } else {
+  //       const errorText = await response.text();
+  //       let errorMessage = `Erreur ${response.status}: ${response.statusText}`;
+  //       try {
+  //         const errorData = JSON.parse(errorText);
+  //         errorMessage = errorData.message || errorMessage;
+  //       } catch {
+  //         errorMessage = errorText.includes("<!DOCTYPE")
+  //           ? "Erreur serveur lors de la suppression de délégation"
+  //           : errorText;
+  //       }
+  //       setError(errorMessage);
+  //       return { success: false, error: errorMessage };
+  //     }
+  //   } catch (err) {
+  //     const errorMessage = "Impossible de contacter le serveur";
+  //     setError(errorMessage);
+  //     return { success: false, error: errorMessage };
+  //   }
+  // };
 
   // Organiser les todos par statut (filtré selon showAllTodos)
   const getFilteredTodos = () => {
@@ -479,7 +479,7 @@ export function TodoProvider({ children }) {
     changeStatus,
     deleteTodo,
     delegateTodo,
-    removeDelegation,
+    // removeDelegation,
     TODO_STATUSES,
   };
 
