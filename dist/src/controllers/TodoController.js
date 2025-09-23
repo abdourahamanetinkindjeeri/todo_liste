@@ -1,0 +1,287 @@
+"use strict";
+var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __importDefault = (this && this.__importDefault) || function (mod) {
+    return (mod && mod.__esModule) ? mod : { "default": mod };
+};
+Object.defineProperty(exports, "__esModule", { value: true });
+const client_1 = require("@prisma/client");
+const TodoService_js_1 = __importDefault(require("../services/TodoService.js"));
+const TodoValidator_js_1 = require("../validators/TodoValidator.js");
+const TaskDelegationRepository_js_1 = require("../repositories/TaskDelegationRepository.js");
+const TodoHistoryRepository_js_1 = require("../repositories/TodoHistoryRepository.js");
+class TodoController {
+    constructor() {
+        this.service = new TodoService_js_1.default();
+        this.getHistory = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                if (typeof req.userId !== "number") {
+                    return res.status(401).json({ message: "Utilisateur non authentifié" });
+                }
+                const todo = yield this.service.findById(+id);
+                if (!todo) {
+                    return res.status(404).json({ message: "Tâche introuvable" });
+                }
+                const isDelegate = yield TaskDelegationRepository_js_1.TaskDelegationRepository.isDelegate(req.userId, +id);
+                if (todo.userId !== req.userId && !isDelegate) {
+                    return res.status(403).json({
+                        message: "Accès interdit : vous n'êtes ni le créateur ni un utilisateur délégué pour cette tâche.",
+                    });
+                }
+                const history = yield TodoHistoryRepository_js_1.TodoHistoryRepository.getHistoryByTodoId(+id);
+                res
+                    .status(200)
+                    .json({ message: "Historique de la tâche", data: history });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.getHistoryByUserId = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { userId } = req.params;
+                if (isNaN(+userId)) {
+                    return res.status(400).json({ message: "userId invalide" });
+                }
+                const history = yield TodoHistoryRepository_js_1.TodoHistoryRepository.getHistoryByUserId(+userId);
+                res.status(200).json({
+                    message: "Historique des tâches de l'utilisateur",
+                    data: history,
+                });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.create = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const data = TodoValidator_js_1.CreateSchemaTodo.parse(req.body);
+                if (typeof req.userId !== "number") {
+                    return res.status(401).json({ message: "Utilisateur non authentifié" });
+                }
+                // Gestion du champ photo
+                let photo = null;
+                if (req.file && req.file.filename) {
+                    photo = `/public/data/uploads/${req.file.filename}`;
+                }
+                const todoData = Object.assign(Object.assign({}, data), { description: data.description === undefined ? null : data.description, userId: req.userId, photo, estAcheve: false, status: client_1.Statut.EN_ATTENTE });
+                const todo = yield this.service.create(todoData);
+                res.locals.todoId = todo.id;
+                res.status(201).json({
+                    message: "Tache ajoutée avec succès.",
+                    todo: Object.assign(Object.assign({}, todo), { photo }),
+                });
+            }
+            catch (err) {
+                next(err);
+            }
+        });
+        this.findAll = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const todos = yield this.service.findAll();
+                res
+                    .status(200)
+                    .json({ message: "Recuperation reussi avec succes", data: todos });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.findById = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                const todo = yield this.service.findById(+id);
+                if (!todo)
+                    res.status(404).json({ message: "Tache introuvable..." });
+                res.status(200).json({ message: "Tache trouve...", data: todo });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.update = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                const data = TodoValidator_js_1.UpdateSchemaTodo.parse(req.body);
+                if (!data)
+                    return res.status(203).json({ message: "Tache mal formee..." });
+                const todo = yield this.service.findById(+id);
+                if (!todo)
+                    return res.status(404).json({ message: "Tache introuvable..." });
+                if (typeof req.userId !== "number") {
+                    return res.status(401).json({ message: "Utilisateur non authentifié" });
+                }
+                const isDelegate = yield TaskDelegationRepository_js_1.TaskDelegationRepository.isDelegate(req.userId, +id);
+                if (todo.userId !== req.userId && !isDelegate) {
+                    return res.status(403).json({
+                        message: "Accès interdit : vous n'êtes ni le créateur ni un utilisateur délégué pour cette tâche.",
+                    });
+                }
+                let photo = todo.photo;
+                if (req.file && req.file.filename) {
+                    photo = `/public/data/uploads/${req.file.filename}`;
+                }
+                const updated = yield this.service.update(+id, Object.assign(Object.assign({}, data), { photo }));
+                res.locals.todoId = +id;
+                res.status(200).json({ message: "Tache modifiée", data: updated });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.delete = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                const todo = yield this.service.findById(+id);
+                if (!todo)
+                    return res.status(404).json({ message: "Tache introuvable..." });
+                // Vérifie que l'utilisateur connecté est le créateur
+                if (todo.userId !== req.userId) {
+                    return res.status(403).json({
+                        message: "Accès interdit : vous n'êtes pas le créateur de cette tâche.",
+                    });
+                }
+                yield this.service.delete(+id);
+                res.locals.todoId = +id;
+                res.status(200).json({ message: "Tache supprimée avec succès." });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.findNotCompleted = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const todos = yield this.service.findNotCompleted();
+                res.status(200).json({ message: "Tâches non achevées", data: todos });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.findByStatus = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const status = req.params.status;
+                const todos = yield this.service.findByStatus(status);
+                res
+                    .status(200)
+                    .json({ message: `Tâches avec le statut ${status}`, data: todos });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.completeTodo = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                const todo = yield this.service.completeTodo(+id);
+                res.status(200).json({ message: "Tâche complétée", data: todo });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.marquerTerminer = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                const todo = yield this.service.findById(+id);
+                if (!todo)
+                    return res.status(404).json({ message: "Tâche introuvable" });
+                if (todo.estAcheve)
+                    return res.status(400).json({ message: "La tâche est déjà achevée" });
+                const updated = yield this.service.changerStatus(+id, "TERMINEE");
+                res
+                    .status(200)
+                    .json({ message: "Tâche marquée comme terminée", data: updated });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.marquerEnAttente = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                const todo = yield this.service.findById(+id);
+                if (!todo)
+                    return res.status(404).json({ message: "Tâche introuvable" });
+                if (todo.estAcheve)
+                    return res.status(400).json({
+                        message: "La tâche est déjà achevée, impossible de changer le statut.",
+                    });
+                const updated = yield this.service.changerStatus(+id, "EN_ATTENTE");
+                res
+                    .status(200)
+                    .json({ message: "Tâche marquée comme en attente", data: updated });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.marquerEnCours = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                const todo = yield this.service.changerStatus(+id, "EN_COURS");
+                res
+                    .status(200)
+                    .json({ message: "Tâche marquée comme en cours", data: todo });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.removeDelegate = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                const { userId } = req.body;
+                if (req.userId !== undefined && userId !== undefined) {
+                    const todo = yield this.service.findById(+id);
+                    if (todo && todo.userId === req.userId) {
+                        yield TaskDelegationRepository_js_1.TaskDelegationRepository.removeDelegation(+id, userId);
+                        return res
+                            .status(200)
+                            .json({ message: "Délégation retirée avec succès." });
+                    }
+                    return res.status(403).json({ message: "Action non autorisée." });
+                }
+                res
+                    .status(400)
+                    .json({ message: "Paramètres manquants ou non authentifié." });
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+        this.delegate = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                const { userId } = req.body;
+                if (req.userId !== undefined && userId !== undefined) {
+                    const todo = yield this.service.findById(+id);
+                    if (todo && todo.userId === req.userId) {
+                        yield TaskDelegationRepository_js_1.TaskDelegationRepository.addDelegation(+id, userId);
+                        res.locals.todoId = +id;
+                        res.status(201).json({ message: "Délégation ajoutée avec succès." });
+                        return next();
+                    }
+                    res.status(403).json({ message: "Action non autorisée." });
+                    return next();
+                }
+                res
+                    .status(400)
+                    .json({ message: "Paramètres manquants ou non authentifié." });
+                return next();
+            }
+            catch (error) {
+                next(error);
+            }
+        });
+    }
+}
+exports.default = TodoController;

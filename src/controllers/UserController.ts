@@ -1,4 +1,4 @@
-import {  User } from "@prisma/client";
+import { User } from "@prisma/client";
 
 import { NextFunction, Request, Response } from "express";
 import UserService from "../services/UserService.js";
@@ -14,7 +14,16 @@ export default class UserController {
       const data = CreateSchemaUser.parse(req.body) as Omit<User, "id">;
       const user = await this.service.create(data);
       res.status(201).json({ message: "User ajoutée avec succès.", user });
-    } catch (err) {
+    } catch (err: any) {
+      if (
+        err instanceof Error &&
+        err.message === "Un utilisateur avec cet email existe déjà"
+      ) {
+        return res.status(409).json({
+            success: false,
+            message: `Un utilisateur avec cet email existe déjà`,
+        });
+      }
       next(err);
     }
   };

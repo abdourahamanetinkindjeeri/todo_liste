@@ -1,4 +1,4 @@
-import {  Statut } from "@prisma/client";
+import { Statut } from "@prisma/client";
 import TodoService from "../services/TodoService.js";
 import path from "path";
 
@@ -10,9 +10,58 @@ import { NextFunction, Request, Response } from "express";
 
 import { TaskDelegationRepository } from "../repositories/TaskDelegationRepository.js";
 import { Status } from "../repositories/ITodoRepository.js";
+import { TodoHistoryRepository } from "../repositories/TodoHistoryRepository.js";
 
 export default class TodoController {
   private service: TodoService = new TodoService();
+  getHistory = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { id } = req.params;
+      if (typeof req.userId !== "number") {
+        return res.status(401).json({ message: "Utilisateur non authentifié" });
+      }
+      const todo = await this.service.findById(+id);
+      if (!todo) {
+        return res.status(404).json({ message: "Tâche introuvable" });
+      }
+      const isDelegate = await TaskDelegationRepository.isDelegate(
+        req.userId,
+        +id
+      );
+      if (todo.userId !== req.userId && !isDelegate) {
+        return res.status(403).json({
+          message:
+            "Accès interdit : vous n'êtes ni le créateur ni un utilisateur délégué pour cette tâche.",
+        });
+      }
+      const history = await TodoHistoryRepository.getHistoryByTodoId(+id);
+      res
+        .status(200)
+        .json({ message: "Historique de la tâche", data: history });
+    } catch (error) {
+      next(error);
+    }
+  };
+  getHistoryByUserId = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { userId } = req.params;
+      if (isNaN(+userId)) {
+        return res.status(400).json({ message: "userId invalide" });
+      }
+      const history = await TodoHistoryRepository.getHistoryByUserId(+userId);
+      res.status(200).json({
+        message: "Historique des tâches de l'utilisateur",
+        data: history,
+      });
+    } catch (error) {
+      next(error);
+    }
+  };
+
   create = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const data = CreateSchemaTodo.parse(req.body);
@@ -24,21 +73,16 @@ export default class TodoController {
       if (req.file && req.file.filename) {
         photo = `/public/data/uploads/${req.file.filename}`;
       }
-      console.log(photo);
-
       const todoData = {
         ...data,
         description: data.description === undefined ? null : data.description,
         userId: req.userId,
         photo,
         estAcheve: false,
-        status: Statut.EN_COURS,
+        status: Statut.EN_ATTENTE,
       };
       const todo = await this.service.create(todoData);
-      // let photoUrl = null;
-      // if (todo.photo) {
-      //   photoUrl = `${req.protocol}://${req.get("host")}${todo.photo}`;
-      // }
+      res.locals.todoId = todo.id;
       res.status(201).json({
         message: "Tache ajoutée avec succès.",
         todo: { ...todo, photo },
@@ -99,6 +143,7 @@ export default class TodoController {
         photo = `/public/data/uploads/${req.file.filename}`;
       }
       const updated = await this.service.update(+id, { ...data, photo });
+      res.locals.todoId = +id;
       res.status(200).json({ message: "Tache modifiée", data: updated });
     } catch (error) {
       next(error);
@@ -119,6 +164,7 @@ export default class TodoController {
         });
       }
       await this.service.delete(+id);
+      res.locals.todoId = +id;
       res.status(200).json({ message: "Tache supprimée avec succès." });
     } catch (error) {
       next(error);
@@ -241,15 +287,17 @@ export default class TodoController {
         const todo = await this.service.findById(+id);
         if (todo && todo.userId === req.userId) {
           await TaskDelegationRepository.addDelegation(+id, userId);
-          return res
-            .status(201)
-            .json({ message: "Délégation ajoutée avec succès." });
+          res.locals.todoId = +id;
+          res.status(201).json({ message: "Délégation ajoutée avec succès." });
+          return next();
         }
-        return res.status(403).json({ message: "Action non autorisée." });
+        res.status(403).json({ message: "Action non autorisée." });
+        return next();
       }
       res
         .status(400)
         .json({ message: "Paramètres manquants ou non authentifié." });
+      return next();
     } catch (error) {
       next(error);
     }
