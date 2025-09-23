@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useTheme } from "../../context/useTheme.jsx";
 import { FiUsers, FiChevronDown, FiChevronUp } from "react-icons/fi";
+import { API_BASE_URL, API_ENDPOINTS } from "../../constants/api.js";
+import { useUserContext } from "../../context/useUserContext.jsx";
 
 /**
  * Widget simplifié d'affichage des utilisateurs
@@ -11,30 +13,94 @@ import { FiUsers, FiChevronDown, FiChevronUp } from "react-icons/fi";
 const SimpleUsersWidget = ({ isExpanded, onToggle }) => {
   const { darkMode } = useTheme();
   const [users, setUsers] = useState([]);
+  // eslint-disable-next-line no-unused-vars
+  const [usersError, setUsersError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  // eslint-disable-next-line no-unused-vars
+  const { user: currentUser, token } = useUserContext();
 
   useEffect(() => {
     if (isExpanded) {
       fetchUsers();
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isExpanded]);
 
   const fetchUsers = async () => {
     setIsLoading(true);
-    try {
-      // Simuler un appel API - à remplacer par le vrai service
-      setTimeout(() => {
-        setUsers([
-          { id: 1, prenom: "John", nom: "Doe", email: "john@example.com" },
-          { id: 2, prenom: "Jane", nom: "Smith", email: "jane@example.com" },
-        ]);
-        setIsLoading(false);
-      }, 500);
-    } catch (error) {
-      console.error("Erreur lors du chargement des utilisateurs:", error);
-      setIsLoading(false);
-    }
+    // try {
+    //   // Simuler un appel API - à remplacer par le vrai service
+    //   setTimeout(() => {
+    //     setUsers([
+    //       { id: 1, prenom: "John", nom: "Doe", email: "john@example.com" },
+    //       { id: 2, prenom: "Jane", nom: "Smith", email: "jane@example.com" },
+    //     ]);
+    //     setIsLoading(false);
+    //   }, 500);
+    // } catch (error) {
+    //   console.error("Erreur lors du chargement des utilisateurs:", error);
+    //   setIsLoading(false);
+    // }
+
+    const authToken = token || localStorage.getItem("token");
+    fetch(API_BASE_URL + API_ENDPOINTS.USERS.BASE, {
+      headers: {
+        "Content-Type": "application/json",
+        ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+      },
+    })
+      .then((res) => res.json())
+      .then((data) => {
+        if (Array.isArray(data.data) && data.data.length > 0) {
+          setUsers(data.data);
+        } else {
+          setUsers([]);
+          setUsersError("Aucun utilisateur disponible");
+        }
+        console.log(users);
+      })
+      .catch(() => {
+        setUsers([]);
+        setUsersError("Erreur lors du chargement des utilisateurs");
+      })
+      .finally(() => setIsLoading(false));
   };
+
+  /**
+   * 
+   * 
+  useEffect(() => {
+    if (showDelegateModal) {
+      setLoadingUsers(true);
+      setUsersError("");
+      const authToken = token || localStorage.getItem("token");
+      fetch(API_BASE_URL + API_ENDPOINTS.USERS.BASE, {
+        headers: {
+          "Content-Type": "application/json",
+          ...(authToken ? { Authorization: `Bearer ${authToken}` } : {}),
+        },
+      })
+        .then((res) => res.json())
+        .then((data) => {
+          if (Array.isArray(data.data) && data.data.length > 0) {
+            setUsersList(data.data);
+          } else {
+            setUsersList([]);
+            setUsersError("Aucun utilisateur disponible");
+          }
+        })
+        .catch(() => {
+          setUsersList([]);
+          setUsersError("Erreur lors du chargement des utilisateurs");
+        })
+        .finally(() => setLoadingUsers(false));
+    }
+  }, [showDelegateModal, token]);
+   * 
+   * 
+   * 
+   * 
+   */
 
   return (
     <div
@@ -78,16 +144,20 @@ const SimpleUsersWidget = ({ isExpanded, onToggle }) => {
           </div>
         </div>
         {isExpanded ? (
-          <FiChevronUp className={darkMode ? "text-gray-400" : "text-gray-600"} />
+          <FiChevronUp
+            className={darkMode ? "text-gray-400" : "text-gray-600"}
+          />
         ) : (
-          <FiChevronDown className={darkMode ? "text-gray-400" : "text-gray-600"} />
+          <FiChevronDown
+            className={darkMode ? "text-gray-400" : "text-gray-600"}
+          />
         )}
       </button>
 
       {isExpanded && (
         <div className="px-4 pb-4">
           {isLoading ? (
-            <div className="text-center py-4">
+            <div className="py-4 text-center">
               <div
                 className={`animate-spin rounded-full h-6 w-6 border-b-2 mx-auto ${
                   darkMode ? "border-blue-400" : "border-blue-600"
@@ -100,17 +170,18 @@ const SimpleUsersWidget = ({ isExpanded, onToggle }) => {
                 <div
                   key={user.id}
                   className={`flex items-center gap-3 p-2 rounded-lg ${
-                    darkMode
-                      ? "hover:bg-gray-700/30"
-                      : "hover:bg-gray-100"
+                    darkMode ? "hover:bg-gray-700/30" : "hover:bg-gray-100"
                   }`}
                 >
                   <div
                     className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-semibold ${
-                      darkMode ? "bg-blue-600 text-white" : "bg-blue-500 text-white"
+                      darkMode
+                        ? "bg-blue-600 text-white"
+                        : "bg-blue-500 text-white"
                     }`}
                   >
-                    {user.prenom[0]}{user.nom[0]}
+                    {user.prenom[0]}
+                    {user.nom[0]}
                   </div>
                   <div>
                     <p

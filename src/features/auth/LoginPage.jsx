@@ -115,6 +115,7 @@ const LoginPage = ({ onSwitchToSignup }) => {
                 error={errors.email}
                 className="pl-10"
                 autoComplete="email"
+                
               />
             </div>
 
@@ -157,7 +158,7 @@ const LoginPage = ({ onSwitchToSignup }) => {
               </label>
               <button
                 type="button"
-                className="text-sm text-green-600 hover:text-green-800 transition-colors"
+                className="text-sm text-green-600 transition-colors hover:text-green-800"
               >
                 Mot de passe oublié ?
               </button>
@@ -178,7 +179,7 @@ const LoginPage = ({ onSwitchToSignup }) => {
               <button
                 type="button"
                 onClick={onSwitchToSignup}
-                className="font-medium text-green-600 hover:text-green-800 transition-colors"
+                className="font-medium text-green-600 transition-colors hover:text-green-800"
               >
                 Créer un compte
               </button>

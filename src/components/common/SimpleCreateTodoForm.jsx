@@ -1,19 +1,13 @@
-import React, { useState } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useTodoContext } from "../../context/useTodoContext.jsx";
 import { useTheme } from "../../context/useTheme.jsx";
 import { Button, Input, Modal } from "../ui/index.js";
 import { FiUpload, FiX } from "react-icons/fi";
 
-/**
- * Formulaire de création de tâche simplifié
- * @param {Object} props
- * @param {Function} props.onClose - Fonction pour fermer le formulaire
- * @param {Function} props.onSuccess - Fonction appelée après création réussie
- */
 const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
   const { createTodo } = useTodoContext();
   const { darkMode } = useTheme();
-  
+
   const [formData, setFormData] = useState({
     titre: "",
     description: "",
@@ -22,6 +16,14 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [photoPreview, setPhotoPreview] = useState(null);
+
+  const titreRef = useRef(null);
+
+  useEffect(() => {
+    if (titreRef.current) {
+      titreRef.current.focus();
+    }
+  }, []);
 
   const validateForm = () => {
     const newErrors = {};
@@ -37,19 +39,16 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    // Nettoyer l'erreur correspondante
+    setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
   const handlePhotoChange = (e) => {
     const file = e.target.files[0];
     if (file) {
-      setFormData(prev => ({ ...prev, photo: file }));
-      
-      // Créer un aperçu
+      setFormData((prev) => ({ ...prev, photo: file }));
       const reader = new FileReader();
       reader.onload = (e) => setPhotoPreview(e.target.result);
       reader.readAsDataURL(file);
@@ -57,13 +56,12 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
   };
 
   const removePhoto = () => {
-    setFormData(prev => ({ ...prev, photo: null }));
+    setFormData((prev) => ({ ...prev, photo: null }));
     setPhotoPreview(null);
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
     if (!validateForm()) return;
 
     setIsLoading(true);
@@ -75,7 +73,7 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
         setErrors({ general: result.error || "Erreur lors de la création" });
       }
     } catch (error) {
-      setErrors({ general: "Erreur lors de la création de la tâche "+error });
+      setErrors({ general: "Erreur lors de la création de la tâche " + error });
     } finally {
       setIsLoading(false);
     }
@@ -85,14 +83,19 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
     <Modal isOpen={true} onClose={onClose} title="Nouvelle tâche" size="md">
       <form onSubmit={handleSubmit} className="space-y-4">
         {errors.general && (
-          <div className="p-3 text-red-700 border border-red-300 rounded-lg bg-red-50 dark:bg-red-900/20 dark:border-red-800/30 dark:text-red-400" role="alert">
+          <div
+            className="p-3 text-red-700 border border-red-300 rounded-lg bg-red-50 dark:bg-red-900/20 dark:border-red-800/30 dark:text-red-400"
+            role="alert"
+          >
             <p className="text-sm">{errors.general}</p>
           </div>
         )}
 
+        {/* Champ Titre avec focus auto */}
         <Input
           label="Titre"
           name="titre"
+          ref={titreRef}
           value={formData.titre}
           onChange={handleChange}
           placeholder="Entrez le titre de la tâche"
@@ -100,6 +103,7 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
           required
         />
 
+        {/* Description */}
         <div className="space-y-1">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Description <span className="text-red-500">*</span>
@@ -111,8 +115,8 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
             placeholder="Décrivez la tâche en détail..."
             rows={4}
             className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-colors duration-200 ${
-              errors.description 
-                ? "border-red-500 bg-red-50 dark:bg-red-900/20" 
+              errors.description
+                ? "border-red-500 bg-red-50 dark:bg-red-900/20"
                 : "border-gray-300 bg-white dark:bg-gray-800 dark:border-gray-600"
             } dark:text-white placeholder-gray-500 dark:placeholder-gray-400`}
             required
@@ -124,11 +128,11 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
           )}
         </div>
 
+        {/* Upload Photo */}
         <div className="space-y-2">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Photo (optionnel)
           </label>
-          
           {photoPreview ? (
             <div className="relative">
               <img
@@ -154,7 +158,11 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
               }`}
             >
               <FiUpload className="mx-auto mb-2" size={24} />
-              <p className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}>
+              <p
+                className={`text-sm ${
+                  darkMode ? "text-gray-400" : "text-gray-600"
+                }`}
+              >
                 Cliquez pour ajouter une photo
               </p>
               <input
@@ -167,6 +175,7 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
           )}
         </div>
 
+        {/* Boutons */}
         <div className="flex gap-3 pt-4">
           <Button
             type="button"
@@ -176,11 +185,7 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
           >
             Annuler
           </Button>
-          <Button
-            type="submit"
-            loading={isLoading}
-            className="flex-1"
-          >
+          <Button type="submit" loading={isLoading} className="flex-1">
             Créer la tâche
           </Button>
         </div>

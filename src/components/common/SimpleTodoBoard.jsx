@@ -62,36 +62,17 @@ const SimpleTodoBoard = ({
     0
   );
 
-  // Pagination globale pour toutes les colonnes
-  const [pageSize, setPageSize] = useState(9); // 3 par colonne par défaut
-  const [page, setPage] = useState(1);
-
-  // Collecter et filtrer tous les todos
-  const allFilteredTodos = columns.flatMap((column) =>
-    filterTodos(column.todos).map((todo) => ({
-      ...todo,
-      status: column.status,
-    }))
-  );
-
-  const totalPages = Math.max(1, Math.ceil(allFilteredTodos.length / pageSize));
-  const paginatedTodos = allFilteredTodos.slice(
-    (page - 1) * pageSize,
-    page * pageSize
-  );
-
-  // Grouper les todos paginés par statut pour l'affichage
-  const paginatedTodosByStatus = paginatedTodos.reduce((acc, todo) => {
-    if (!acc[todo.status]) acc[todo.status] = [];
-    acc[todo.status].push(todo);
-    return acc;
-  }, {});
-
-  // Proposer uniquement des tailles <= total
-  const sizeOptions = [3, 5, 10, 20]
-    .filter((size) => size < allFilteredTodos.length)
-    .concat(allFilteredTodos.length)
-    .filter((v, i, arr) => arr.indexOf(v) === i && v > 0);
+  const defaultPageSize = 3;
+  const [pageSizes, setPageSizes] = useState({
+    [TODO_STATUSES.EN_ATTENTE]: defaultPageSize,
+    [TODO_STATUSES.EN_COURS]: defaultPageSize,
+    [TODO_STATUSES.TERMINEE]: defaultPageSize,
+  });
+  const [pages, setPages] = useState({
+    [TODO_STATUSES.EN_ATTENTE]: 1,
+    [TODO_STATUSES.EN_COURS]: 1,
+    [TODO_STATUSES.TERMINEE]: 1,
+  });
 
   if (isLoading) {
     return (
@@ -134,8 +115,20 @@ const SimpleTodoBoard = ({
         {columns.map((column) => {
           const Icon = column.icon;
           const filteredTodos = filterTodos(column.todos);
-          const columnPaginatedTodos =
-            paginatedTodosByStatus[column.status] || [];
+          const pageSize = pageSizes[column.status];
+          const page = pages[column.status];
+          const totalPages = Math.max(
+            1,
+            Math.ceil(filteredTodos.length / pageSize)
+          );
+          const columnPaginatedTodos = filteredTodos.slice(
+            (page - 1) * pageSize,
+            page * pageSize
+          );
+          const sizeOptions = [3, 5, 10, 20]
+            .filter((size) => size < filteredTodos.length)
+            .concat(filteredTodos.length)
+            .filter((v, i, arr) => arr.indexOf(v) === i && v > 0);
           return (
             <div key={column.status} className="space-y-4">
               {/* En-tête de colonne */}
@@ -209,62 +202,77 @@ const SimpleTodoBoard = ({
                   </div>
                 )}
               </div>
+
+              {/* Pagination par colonne */}
+              {filteredTodos.length > 0 && (
+                <div className="flex items-center justify-center gap-2 mt-2">
+                  <button
+                    className={`px-2 py-1 rounded font-medium text-xs ${
+                      darkMode
+                        ? "bg-gray-700 text-white hover:bg-gray-600"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    onClick={() =>
+                      setPages((prev) => ({
+                        ...prev,
+                        [column.status]: Math.max(1, page - 1),
+                      }))
+                    }
+                    disabled={page === 1}
+                  >
+                    Précédent
+                  </button>
+                  <span className="text-xs font-medium">
+                    Page {page} / {totalPages}
+                  </span>
+                  <button
+                    className={`px-2 py-1 rounded font-medium text-xs ${
+                      darkMode
+                        ? "bg-gray-700 text-white hover:bg-gray-600"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    } disabled:opacity-50 disabled:cursor-not-allowed`}
+                    onClick={() =>
+                      setPages((prev) => ({
+                        ...prev,
+                        [column.status]: Math.min(totalPages, page + 1),
+                      }))
+                    }
+                    disabled={page === totalPages}
+                  >
+                    Suivant
+                  </button>
+                  <select
+                    className={`px-2 py-1 rounded font-medium text-xs ${
+                      darkMode
+                        ? "bg-gray-700 text-white"
+                        : "bg-gray-200 text-gray-700"
+                    }`}
+                    value={pageSize}
+                    onChange={(e) => {
+                      setPageSizes((prev) => ({
+                        ...prev,
+                        [column.status]: Number(e.target.value),
+                      }));
+                      setPages((prev) => ({
+                        ...prev,
+                        [column.status]: 1,
+                      }));
+                    }}
+                  >
+                    {sizeOptions.map((size) => (
+                      <option key={size} value={size}>
+                        {size} / page
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
 
-      {/* Pagination controls globale en bas */}
-      {allFilteredTodos.length > 0 && (
-        <div className="flex items-center justify-center gap-4 mt-6">
-          <button
-            className={`px-4 py-2 rounded font-medium ${
-              darkMode
-                ? "bg-gray-700 text-white hover:bg-gray-600"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
-            onClick={() => setPage(Math.max(1, page - 1))}
-            disabled={page === 1}
-          >
-            Précédent
-          </button>
-          <span className="text-sm font-medium">
-            Page {page} / {totalPages} ({allFilteredTodos.length} tâche
-            {allFilteredTodos.length !== 1 ? "s" : ""})
-          </span>
-          <button
-            className={`px-4 py-2 rounded font-medium ${
-              darkMode
-                ? "bg-gray-700 text-white hover:bg-gray-600"
-                : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-            } disabled:opacity-50 disabled:cursor-not-allowed`}
-            onClick={() => setPage(Math.min(totalPages, page + 1))}
-            disabled={page === totalPages}
-          >
-            Suivant
-          </button>
-          <div>
-            <select
-              className={`px-3 py-2 rounded font-medium ${
-                darkMode
-                  ? "bg-gray-700 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-              value={pageSize}
-              onChange={(e) => {
-                setPageSize(Number(e.target.value));
-                setPage(1);
-              }}
-            >
-              {sizeOptions.map((size) => (
-                <option key={size} value={size}>
-                  {size} / page
-                </option>
-              ))}
-            </select>
-          </div>
-        </div>
-      )}
+      {/* ...pagination globale supprimée... */}
     </div>
   );
 };

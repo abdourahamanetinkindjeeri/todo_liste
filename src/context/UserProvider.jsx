@@ -101,12 +101,12 @@ export function UserProvider({ children }) {
         const errorData = await response.json();
         return {
           success: false,
-          error: errorData.message || "Erreur lors de l'inscription",
+          message: errorData.message || "Erreur lors de l'inscription",
         };
       }
     } catch (error) {
       console.error("Erreur d'inscription:", error);
-      return { success: false, error: "Erreur de réseau" };
+      return { success: false, message: "Erreur de réseau" };
     }
   };
 
@@ -117,11 +117,10 @@ export function UserProvider({ children }) {
     removeToken();
   };
 
-  // Afficher un loading pendant la vérification du token
   if (isLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="w-32 h-32 border-b-2 border-blue-600 rounded-full animate-spin"></div>
       </div>
     );
   }

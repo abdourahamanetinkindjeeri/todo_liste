@@ -89,7 +89,7 @@ const SignupPage = ({ onSwitchToLogin }) => {
           });
           setTimeout(() => onSwitchToLogin(), 2000);
         } else {
-          setErrors({ general: result.error });
+          setErrors({ general: result.message });
         }
       } catch (error) {
         console.error("Erreur inscription", error);
@@ -108,7 +108,7 @@ const SignupPage = ({ onSwitchToLogin }) => {
     }));
     // Nettoyer les erreurs lors de la saisie
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
@@ -147,12 +147,18 @@ const SignupPage = ({ onSwitchToLogin }) => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {errors.general && (
-              <div className="px-4 py-3 text-red-700 border border-red-300 rounded-lg bg-red-50" role="alert">
+              <div
+                className="px-4 py-3 text-red-700 border border-red-300 rounded-lg bg-red-50"
+                role="alert"
+              >
                 <p className="text-sm">{errors.general}</p>
               </div>
             )}
             {successMessage && (
-              <div className="px-4 py-3 text-green-700 border border-green-300 rounded-lg bg-green-50" role="alert">
+              <div
+                className="px-4 py-3 text-green-700 border border-green-300 rounded-lg bg-green-50"
+                role="alert"
+              >
                 <p className="text-sm">{successMessage}</p>
               </div>
             )}
@@ -160,7 +166,10 @@ const SignupPage = ({ onSwitchToLogin }) => {
             {/* Prénom et Nom */}
             <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
               <div className="relative">
-                <FiUser className="absolute text-gray-400 left-3 top-3" aria-hidden="true" />
+                <FiUser
+                  className="absolute text-gray-400 left-3 top-3"
+                  aria-hidden="true"
+                />
                 <Input
                   type="text"
                   name="prenom"
@@ -173,7 +182,10 @@ const SignupPage = ({ onSwitchToLogin }) => {
                 />
               </div>
               <div className="relative">
-                <FiUser className="absolute text-gray-400 left-3 top-3" aria-hidden="true" />
+                <FiUser
+                  className="absolute text-gray-400 left-3 top-3"
+                  aria-hidden="true"
+                />
                 <Input
                   type="text"
                   name="nom"
@@ -189,7 +201,10 @@ const SignupPage = ({ onSwitchToLogin }) => {
 
             {/* Email */}
             <div className="relative">
-              <FiMail className="absolute text-gray-400 left-3 top-3" aria-hidden="true" />
+              <FiMail
+                className="absolute text-gray-400 left-3 top-3"
+                aria-hidden="true"
+              />
               <Input
                 type="email"
                 name="email"
@@ -204,7 +219,10 @@ const SignupPage = ({ onSwitchToLogin }) => {
 
             {/* Mot de passe */}
             <div className="relative">
-              <FiLock className="absolute text-gray-400 left-3 top-3" aria-hidden="true" />
+              <FiLock
+                className="absolute text-gray-400 left-3 top-3"
+                aria-hidden="true"
+              />
               <Input
                 type={showPassword ? "text" : "password"}
                 name="password"
@@ -219,7 +237,11 @@ const SignupPage = ({ onSwitchToLogin }) => {
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 transition-colors"
-                aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                aria-label={
+                  showPassword
+                    ? "Masquer le mot de passe"
+                    : "Afficher le mot de passe"
+                }
               >
                 {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>
@@ -227,7 +249,10 @@ const SignupPage = ({ onSwitchToLogin }) => {
 
             {/* Confirmation mot de passe */}
             <div className="relative">
-              <FiLock className="absolute text-gray-400 left-3 top-3" aria-hidden="true" />
+              <FiLock
+                className="absolute text-gray-400 left-3 top-3"
+                aria-hidden="true"
+              />
               <Input
                 type={showConfirmPassword ? "text" : "password"}
                 name="confirmPassword"
@@ -242,7 +267,11 @@ const SignupPage = ({ onSwitchToLogin }) => {
                 type="button"
                 onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                 className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 transition-colors"
-                aria-label={showConfirmPassword ? "Masquer la confirmation" : "Afficher la confirmation"}
+                aria-label={
+                  showConfirmPassword
+                    ? "Masquer la confirmation"
+                    : "Afficher la confirmation"
+                }
               >
                 {showConfirmPassword ? <FiEyeOff /> : <FiEye />}
               </button>
@@ -259,7 +288,10 @@ const SignupPage = ({ onSwitchToLogin }) => {
                   className="w-4 h-4 mt-1 text-green-600 border-gray-300 rounded focus:ring-2 focus:ring-green-500"
                   id="agreeToTerms"
                 />
-                <label htmlFor="agreeToTerms" className="ml-2 text-sm text-gray-600 cursor-pointer">
+                <label
+                  htmlFor="agreeToTerms"
+                  className="ml-2 text-sm text-gray-600 cursor-pointer"
+                >
                   J'accepte les{" "}
                   <button
                     type="button"
@@ -277,7 +309,9 @@ const SignupPage = ({ onSwitchToLogin }) => {
                 </label>
               </div>
               {errors.agreeToTerms && (
-                <p className="text-sm text-red-500" role="alert">{errors.agreeToTerms}</p>
+                <p className="text-sm text-red-500" role="alert">
+                  {errors.agreeToTerms}
+                </p>
               )}
             </div>
 

@@ -170,7 +170,7 @@ const DashboardHeader = () => {
           >
             <div className="relative w-full max-w-lg p-6 bg-white rounded-lg shadow-lg">
               <button
-                className="absolute text-xl text-gray-500 top-2 right-2 hover:text-red-500 transition-colors"
+                className="absolute text-xl text-gray-500 transition-colors top-2 right-2 hover:text-red-500"
                 onClick={() => setShowHistoryModal(false)}
                 aria-label="Fermer"
               >
