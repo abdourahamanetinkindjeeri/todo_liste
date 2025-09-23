@@ -1,5 +1,5 @@
-import React from "react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff, FiLock, FiMail, FiUser } from "react-icons/fi";
 import { useUserContext } from "../../context/useUserContext.jsx";
 import { Button, Input } from "../../components/ui/index.js";
@@ -11,6 +11,7 @@ import { Button, Input } from "../../components/ui/index.js";
  */
 const SignupPage = ({ onSwitchToLogin }) => {
   const { signup } = useUserContext();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     prenom: "",
     nom: "",
@@ -77,7 +78,7 @@ const SignupPage = ({ onSwitchToLogin }) => {
 
         if (result.success) {
           setSuccessMessage(
-            "Inscription réussie ! Vous pouvez maintenant vous connecter."
+            "Inscription réussie ! Vous allez être redirigé vers la page de connexion."
           );
           setFormData({
             prenom: "",
@@ -87,7 +88,10 @@ const SignupPage = ({ onSwitchToLogin }) => {
             confirmPassword: "",
             agreeToTerms: false,
           });
-          setTimeout(() => onSwitchToLogin(), 2000);
+          setTimeout(() => {
+            onSwitchToLogin(); // Garde le switch visuel
+            navigate("/login"); // Assure la redirection
+          }, 2000);
         } else {
           setErrors({ general: result.message });
         }
@@ -295,14 +299,14 @@ const SignupPage = ({ onSwitchToLogin }) => {
                   J'accepte les{" "}
                   <button
                     type="button"
-                    className="font-medium text-green-600 hover:text-green-800 transition-colors"
+                    className="font-medium text-green-600 transition-colors hover:text-green-800"
                   >
                     conditions d'utilisation
                   </button>{" "}
                   et la{" "}
                   <button
                     type="button"
-                    className="font-medium text-green-600 hover:text-green-800 transition-colors"
+                    className="font-medium text-green-600 transition-colors hover:text-green-800"
                   >
                     politique de confidentialité
                   </button>
@@ -328,7 +332,7 @@ const SignupPage = ({ onSwitchToLogin }) => {
               <button
                 type="button"
                 onClick={onSwitchToLogin}
-                className="font-medium text-green-600 hover:text-green-800 transition-colors"
+                className="font-medium text-green-600 transition-colors hover:text-green-800"
               >
                 Se connecter
               </button>

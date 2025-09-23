@@ -1,5 +1,6 @@
 import React from "react";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { FiEye, FiEyeOff, FiLock, FiMail } from "react-icons/fi";
 import { useUserContext } from "../../context/useUserContext.jsx";
 import { Button, Input } from "../../components/ui/index.js";
@@ -11,6 +12,7 @@ import { Button, Input } from "../../components/ui/index.js";
  */
 const LoginPage = ({ onSwitchToSignup }) => {
   const { login } = useUserContext();
+  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -40,10 +42,13 @@ const LoginPage = ({ onSwitchToSignup }) => {
     e.preventDefault();
     if (validateForm()) {
       setIsLoading(true);
+      setErrors({}); // Réinitialiser les erreurs
       try {
         const result = await login(formData.email, formData.password);
-        if (!result.success) {
-          setErrors({ general: result.error });
+        if (result.success) {
+          navigate("/dashboard"); // Redirection vers le dashboard
+        } else {
+          setErrors({ general: result.error || "Échec de la connexion" });
         }
       } catch (error) {
         console.error("Échec connexion", error);
@@ -62,7 +67,7 @@ const LoginPage = ({ onSwitchToSignup }) => {
     }));
     // Nettoyer les erreurs lors de la saisie
     if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: undefined }));
+      setErrors((prev) => ({ ...prev, [name]: undefined }));
     }
   };
 
@@ -98,14 +103,20 @@ const LoginPage = ({ onSwitchToSignup }) => {
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {errors.general && (
-              <div className="px-4 py-3 text-red-700 border border-red-300 rounded-lg bg-red-50" role="alert">
+              <div
+                className="px-4 py-3 text-red-700 border border-red-300 rounded-lg bg-red-50"
+                role="alert"
+              >
                 <p className="text-sm">{errors.general}</p>
               </div>
             )}
 
             {/* Champ email */}
             <div className="relative">
-              <FiMail className="absolute text-gray-400 left-3 top-3" aria-hidden="true" />
+              <FiMail
+                className="absolute text-gray-400 left-3 top-3"
+                aria-hidden="true"
+              />
               <Input
                 type="email"
                 name="email"
@@ -115,13 +126,15 @@ const LoginPage = ({ onSwitchToSignup }) => {
                 error={errors.email}
                 className="pl-10"
                 autoComplete="email"
-                
               />
             </div>
 
             {/* Champ mot de passe */}
             <div className="relative">
-              <FiLock className="absolute text-gray-400 left-3 top-3" aria-hidden="true" />
+              <FiLock
+                className="absolute text-gray-400 left-3 top-3"
+                aria-hidden="true"
+              />
               <Input
                 type={showPassword ? "text" : "password"}
                 name="password"
@@ -131,13 +144,16 @@ const LoginPage = ({ onSwitchToSignup }) => {
                 error={errors.password}
                 className="pl-10 pr-10"
                 autoComplete="current-password"
-                
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600 transition-colors"
-                aria-label={showPassword ? "Masquer le mot de passe" : "Afficher le mot de passe"}
+                aria-label={
+                  showPassword
+                    ? "Masquer le mot de passe"
+                    : "Afficher le mot de passe"
+                }
               >
                 {showPassword ? <FiEyeOff /> : <FiEye />}
               </button>
