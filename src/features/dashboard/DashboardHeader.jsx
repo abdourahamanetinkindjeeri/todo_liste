@@ -10,6 +10,7 @@ import SimpleUsersWidget from "./SimpleUsersWidget.jsx";
 import SimpleTodoHistory from "./SimpleTodoHistory.jsx";
 import { Search, Bell, Grid3X3, BarChart3 } from "lucide-react";
 import TeamMembersList from "../../components/common/TeamMembersList.jsx";
+import SearchBar from "../../components/common/SearchBar.jsx";
 
 /**
  * En-tête du dashboard style Quantum
@@ -24,6 +25,7 @@ const DashboardHeader = () => {
   const [historyData, setHistoryData] = useState([]);
   const [loadingHistory, setLoadingHistory] = useState(false);
   const [errorHistory, setErrorHistory] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Récupérer l'historique depuis l'API à l'ouverture de la modal
   const fetchHistory = async () => {
@@ -110,29 +112,9 @@ const DashboardHeader = () => {
             </nav>
           </div>
 
-          {/* Actions utilisateur */}
+          {/* Actions utilisateur + barre de recherche */}
           <div className="flex items-center space-x-4">
-            <div
-              className={`relative flex items-center ${
-                darkMode ? "bg-gray-800" : "bg-gray-100"
-              } rounded-lg px-3 py-2`}
-            >
-              <Search
-                className={`w-4 h-4 ${
-                  darkMode ? "text-gray-400" : "text-gray-500"
-                } mr-2`}
-              />
-              <input
-                type="text"
-                placeholder="Search"
-                className={`bg-transparent text-sm outline-none ${
-                  darkMode
-                    ? "text-white placeholder-gray-400"
-                    : "text-gray-900 placeholder-gray-500"
-                }`}
-              />
-            </div>
-
+            <SearchBar searchTerm={searchTerm} onSearchChange={setSearchTerm} />
             <button
               className={`p-2 rounded-lg ${
                 darkMode ? "hover:bg-gray-800" : "hover:bg-gray-100"
@@ -217,19 +199,19 @@ const DashboardHeader = () => {
                   Équipe
                 </button> */}
                 <button
-            onClick={() => setShowAllTodos(true)}
-            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
-              showAllTodos
-                ? darkMode
-                  ? "bg-blue-600 text-white shadow-lg"
-                  : "bg-blue-500 text-white shadow-lg"
-                : darkMode
-                ? "text-gray-400 hover:text-gray-300"
-                : "text-gray-600 hover:text-gray-800"
-            }`}
-          >
-            Équipe
-          </button>
+                  onClick={() => setShowAllTodos(true)}
+                  className={`px-4 py-2 rounded-lg text-sm font-medium transition-all duration-200 ${
+                    showAllTodos
+                      ? darkMode
+                        ? "bg-blue-600 text-white shadow-lg"
+                        : "bg-blue-500 text-white shadow-lg"
+                      : darkMode
+                      ? "text-gray-400 hover:text-gray-300"
+                      : "text-gray-600 hover:text-gray-800"
+                  }`}
+                >
+                  Équipe
+                </button>
               </div>
             </div>
 

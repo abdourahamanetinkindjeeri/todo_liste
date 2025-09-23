@@ -34,7 +34,6 @@ const SimpleTodoBoard = ({
 }) => {
   const { darkMode } = useTheme();
 
-  // Configuration des colonnes style Quantum avec icônes
   const columns = [
     {
       status: TODO_STATUSES.EN_ATTENTE,

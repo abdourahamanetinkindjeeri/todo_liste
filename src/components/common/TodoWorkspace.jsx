@@ -8,13 +8,8 @@ import TeamMembersList from "./TeamMembersList.jsx";
 import SimpleFloatingActions from "./SimpleFloatingActions.jsx";
 import SimpleCreateTodoForm from "./SimpleCreateTodoForm.jsx";
 import SimpleEditTodoForm from "./SimpleEditTodoForm.jsx";
-import SearchBar from "./SearchBar.jsx";
 
-/**
- * Espace de travail principal pour la gestion des tâches style Quantum
- */
-
-const TodoWorkspace = () => {
+const TodoWorkspace = ({ searchTerm }) => {
   const { darkMode } = useTheme();
   const { todos, isLoading, error, setError, fetchTodos, showAllTodos } =
     useTodoContext();
@@ -22,7 +17,6 @@ const TodoWorkspace = () => {
 
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [editingTodo, setEditingTodo] = useState(null);
-  const [searchTerm, setSearchTerm] = useState("");
   const [notification, setNotification] = useState(null);
 
   // Sélecteur pour le nombre de todos par page PAR statut
@@ -53,24 +47,18 @@ const TodoWorkspace = () => {
   // Filtrage par recherche AVANT pagination
   const filteredTodos = useMemo(() => {
     let result = todos;
-
-    // Filtrage par onglet : si showAllTodos = false, ne garder que les tâches de l'utilisateur courant
     if (!showAllTodos && user) {
       result = todos.filter(
         (todo) => todo.userId === user.id || todo.user?.id === user.id
       );
     }
-    // Si showAllTodos = true, on garde tous les todos (équipe)
-
-    // Filtrage par terme de recherche
-    if (searchTerm.trim()) {
+    if (searchTerm && searchTerm.trim()) {
       result = result.filter(
         (todo) =>
           todo.titre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
           todo.description?.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
-
     return result;
   }, [todos, user, searchTerm, showAllTodos]);
 
@@ -133,54 +121,41 @@ const TodoWorkspace = () => {
         />
       )}
       {/* Barre de recherche et contrôles - uniquement en mode tâches */}
-      {!showAllTodos && (
-        <div className="mb-6 space-y-4">
-          <SearchBar
-            searchTerm={searchTerm}
-            onSearchChange={setSearchTerm}
-            darkMode={darkMode}
-          />
-
-          {/* Sélecteur du nombre de tâches par statut */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <span
-                className={`text-sm font-medium ${
-                  darkMode ? "text-gray-300" : "text-gray-700"
-                }`}
-              >
-                Tâches par colonne :
-              </span>
-              <select
-                value={itemsPerStatus}
-                onChange={(e) =>
-                  handleItemsPerStatusChange(parseInt(e.target.value, 10))
-                }
-                className={`px-3 py-1 rounded-lg border text-sm outline-none ${
-                  darkMode
-                    ? "bg-gray-800 border-gray-700 text-white"
-                    : "bg-white border-gray-300 text-gray-900"
-                }`}
-              >
-                <option value={3}>3 tâches</option>
-                <option value={5}>5 tâches</option>
-                <option value={8}>8 tâches</option>
-                <option value={10}>10 tâches</option>
-                <option value={15}>15 tâches</option>
-              </select>
-            </div>
-
-            <div
-              className={`text-sm ${
-                darkMode ? "text-gray-400" : "text-gray-600"
-              }`}
-            >
-              Total : {filteredTodos.length} tâche
-              {filteredTodos.length !== 1 ? "s" : ""}
-            </div>
-          </div>
+      {/* Sélecteur du nombre de tâches par statut */}
+      <div className="mb-6 flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <span
+            className={`text-sm font-medium ${
+              darkMode ? "text-gray-300" : "text-gray-700"
+            }`}
+          >
+            Tâches par colonne :
+          </span>
+          <select
+            value={itemsPerStatus}
+            onChange={(e) =>
+              handleItemsPerStatusChange(parseInt(e.target.value, 10))
+            }
+            className={`px-3 py-1 rounded-lg border text-sm outline-none ${
+              darkMode
+                ? "bg-gray-800 border-gray-700 text-white"
+                : "bg-white border-gray-300 text-gray-900"
+            }`}
+          >
+            <option value={3}>3 tâches</option>
+            <option value={5}>5 tâches</option>
+            <option value={8}>8 tâches</option>
+            <option value={10}>10 tâches</option>
+            <option value={15}>15 tâches</option>
+          </select>
         </div>
-      )}{" "}
+        <div
+          className={`text-sm ${darkMode ? "text-gray-400" : "text-gray-600"}`}
+        >
+          Total : {filteredTodos.length} tâche
+          {filteredTodos.length !== 1 ? "s" : ""}
+        </div>
+      </div>
       {/* Message d'erreur */}
       {error && (
         <div
@@ -205,34 +180,20 @@ const TodoWorkspace = () => {
           </div>
         </div>
       )}
-      {/* Board des tâches et liste équipe en mode Équipe */}
-      {showAllTodos ? (
-          <div className="mt-8">
-            <SimpleTodoBoard
-              todos={filteredTodos}
-              todosByStatus={paginatedTodosByStatus}
-              onEditTodo={handleEditTodo}
-              showNotification={showNotification}
-              isLoading={isLoading}
-              pageByStatus={pageByStatus}
-              itemsPerStatus={itemsPerStatus}
-              onPageChangeByStatus={handlePageChange}
-              filteredTodos={filteredTodos}
-            />
-          </div>
-      ) : (
-        <SimpleTodoBoard
-          todos={filteredTodos}
-          todosByStatus={paginatedTodosByStatus}
-          onEditTodo={handleEditTodo}
-          showNotification={showNotification}
-          isLoading={isLoading}
-          pageByStatus={pageByStatus}
-          itemsPerStatus={itemsPerStatus}
-          onPageChangeByStatus={handlePageChange}
-          filteredTodos={filteredTodos}
-        />
-      )}
+      {/* Liste équipe au-dessus du board en mode Équipe */}
+      {showAllTodos && <TeamMembersList showNotification={showNotification} />}
+      {/* Board des tâches toujours affiché */}
+      <SimpleTodoBoard
+        todos={filteredTodos}
+        todosByStatus={paginatedTodosByStatus}
+        onEditTodo={handleEditTodo}
+        showNotification={showNotification}
+        isLoading={isLoading}
+        pageByStatus={pageByStatus}
+        itemsPerStatus={itemsPerStatus}
+        onPageChangeByStatus={handlePageChange}
+        filteredTodos={filteredTodos}
+      />
       {/* Actions flottantes */}
       <SimpleFloatingActions
         onCreateTodo={handleCreateTodo}
