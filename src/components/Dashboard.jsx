@@ -1,7 +1,7 @@
-import SimpleDashboard from "./modern/SimpleDashboard";
+// import SimpleDashboard from "./modern/SimpleDashboard";
 
-const Dashboard = () => {
-  return <SimpleDashboard />;
-};
+// const Dashboard = () => {
+//   return <SimpleDashboard />;
+// };
 
-export default Dashboard;
+// export default Dashboard;
