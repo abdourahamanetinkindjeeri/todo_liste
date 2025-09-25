@@ -41,6 +41,7 @@ class TodoController {
                 res
                     .status(200)
                     .json({ message: "Historique de la tâche", data: history });
+                return next();
             }
             catch (error) {
                 next(error);
@@ -57,6 +58,7 @@ class TodoController {
                     message: "Historique des tâches de l'utilisateur",
                     data: history,
                 });
+                return next();
             }
             catch (error) {
                 next(error);
@@ -102,7 +104,7 @@ class TodoController {
                 // Gestion du temps d'exécution
                 let tempsExecution = 0;
                 if (req.body.tempsExecution) {
-                    tempsExecution = Number(req.body.tempsExecution);
+                    tempsExecution = Number(req.body.tempsExecution) * 60;
                     if (isNaN(tempsExecution) || tempsExecution <= 0) {
                         return res.status(400).json({
                             message: "tempsExecution doit être un nombre positif (en secondes)",
@@ -116,12 +118,20 @@ class TodoController {
                     vocal, estAcheve: false, status: client_1.Statut.EN_ATTENTE, tempsExecution, dateDebut: null });
                 console.log("Données à enregistrer:", Object.assign(Object.assign({}, todoData), { vocal: vocal ? "URL_VOCAL_PRESENT" : null }));
                 const todo = yield this.service.create(todoData);
+                // Ajout historique
+                yield TodoHistoryRepository_js_1.TodoHistoryRepository.log({
+                    todoId: todo.id,
+                    userId: req.userId,
+                    action: "CREATION",
+                    description: `Tâche créée par l'utilisateur ${req.userId}`,
+                });
                 console.log("Tâche créée avec vocal:", todo.vocal ? "OUI" : "NON");
                 res.locals.todoId = todo.id;
                 res.status(201).json({
                     message: "Tache ajoutée avec succès.",
                     todo: Object.assign(Object.assign({}, todo), { photo, vocal }),
                 });
+                return next();
             }
             catch (err) {
                 next(err);
@@ -133,6 +143,7 @@ class TodoController {
                 res
                     .status(200)
                     .json({ message: "Recuperation reussi avec succes", data: todos });
+                return next();
             }
             catch (error) {
                 next(error);
@@ -145,6 +156,7 @@ class TodoController {
                 if (!todo)
                     res.status(404).json({ message: "Tache introuvable..." });
                 res.status(200).json({ message: "Tache trouve...", data: todo });
+                return next();
             }
             catch (error) {
                 next(error);
@@ -210,8 +222,16 @@ class TodoController {
                     updateData.tempsExecution = tempsExecution;
                 }
                 const updated = yield this.service.update(+id, updateData);
+                // Ajout historique
+                yield TodoHistoryRepository_js_1.TodoHistoryRepository.log({
+                    todoId: +id,
+                    userId: req.userId,
+                    action: "MODIFICATION",
+                    description: `Tâche modifiée par l'utilisateur ${req.userId}`,
+                });
                 res.locals.todoId = +id;
                 res.status(200).json({ message: "Tache modifiée", data: updated });
+                return next();
             }
             catch (error) {
                 next(error);
@@ -235,6 +255,7 @@ class TodoController {
                         const publicId = CloudinaryService_js_1.CloudinaryService.extractPublicId(todo.vocal);
                         if (publicId) {
                             yield CloudinaryService_js_1.CloudinaryService.deleteFile(publicId, "video");
+                            return next();
                         }
                     }
                     catch (deleteError) {
@@ -243,8 +264,16 @@ class TodoController {
                     }
                 }
                 yield this.service.delete(+id);
+                // Ajout historique
+                yield TodoHistoryRepository_js_1.TodoHistoryRepository.log({
+                    todoId: +id,
+                    userId: req.userId,
+                    action: "SUPPRESSION",
+                    description: `Tâche supprimée par l'utilisateur ${req.userId}`,
+                });
                 res.locals.todoId = +id;
                 res.status(200).json({ message: "Tache supprimée avec succès." });
+                return next();
             }
             catch (error) {
                 next(error);
@@ -254,6 +283,7 @@ class TodoController {
             try {
                 const todos = yield this.service.findNotCompleted();
                 res.status(200).json({ message: "Tâches non achevées", data: todos });
+                return next();
             }
             catch (error) {
                 next(error);
@@ -266,6 +296,7 @@ class TodoController {
                 res
                     .status(200)
                     .json({ message: `Tâches avec le statut ${status}`, data: todos });
+                return next();
             }
             catch (error) {
                 next(error);
@@ -275,7 +306,18 @@ class TodoController {
             try {
                 const { id } = req.params;
                 const todo = yield this.service.completeTodo(+id);
+                // Ajout historique
+                if (typeof req.userId !== "number") {
+                    return res.status(401).json({ message: "Utilisateur non authentifié" });
+                }
+                yield TodoHistoryRepository_js_1.TodoHistoryRepository.log({
+                    todoId: +id,
+                    userId: req.userId,
+                    action: "COMPLETION",
+                    description: `Tâche complétée par l'utilisateur ${req.userId}`,
+                });
                 res.status(200).json({ message: "Tâche complétée", data: todo });
+                return next();
             }
             catch (error) {
                 next(error);
@@ -290,9 +332,20 @@ class TodoController {
                 if (todo.estAcheve)
                     return res.status(400).json({ message: "La tâche est déjà achevée" });
                 const updated = yield this.service.changerStatus(+id, "TERMINEE");
+                // Ajout historique
+                if (typeof req.userId !== "number") {
+                    return res.status(401).json({ message: "Utilisateur non authentifié" });
+                }
+                yield TodoHistoryRepository_js_1.TodoHistoryRepository.log({
+                    todoId: +id,
+                    userId: req.userId,
+                    action: "MODIFICATION",
+                    description: `Tâche marquée comme terminée par l'utilisateur ${req.userId}`,
+                });
                 res
                     .status(200)
                     .json({ message: "Tâche marquée comme terminée", data: updated });
+                return next();
             }
             catch (error) {
                 next(error);
@@ -309,9 +362,20 @@ class TodoController {
                         message: "La tâche est déjà achevée, impossible de changer le statut.",
                     });
                 const updated = yield this.service.changerStatus(+id, "EN_ATTENTE");
+                // Ajout historique
+                if (typeof req.userId !== "number") {
+                    return res.status(401).json({ message: "Utilisateur non authentifié" });
+                }
+                yield TodoHistoryRepository_js_1.TodoHistoryRepository.log({
+                    todoId: +id,
+                    userId: req.userId,
+                    action: "MODIFICATION",
+                    description: `Tâche marquée comme en attente par l'utilisateur ${req.userId}`,
+                });
                 res
                     .status(200)
                     .json({ message: "Tâche marquée comme en attente", data: updated });
+                return next();
             }
             catch (error) {
                 next(error);
@@ -324,6 +388,7 @@ class TodoController {
                 res
                     .status(200)
                     .json({ message: "Tâche marquée comme en cours", data: todo });
+                return next();
             }
             catch (error) {
                 next(error);
@@ -341,11 +406,13 @@ class TodoController {
                             .status(200)
                             .json({ message: "Délégation retirée avec succès." });
                     }
-                    return res.status(403).json({ message: "Action non autorisée." });
+                    res.status(403).json({ message: "Action non autorisée." });
+                    return next();
                 }
                 res
                     .status(400)
                     .json({ message: "Paramètres manquants ou non authentifié." });
+                return next();
             }
             catch (error) {
                 next(error);

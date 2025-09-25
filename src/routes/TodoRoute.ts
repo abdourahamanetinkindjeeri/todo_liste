@@ -74,4 +74,9 @@ router.patch(
   auditTodoAction("MODIFICATION")
 );
 
+router.put(
+  "/:id/delegate",
+  controller.delegate,
+  auditTodoAction("DELEGATION")
+);
 export default router;
