@@ -73,7 +73,6 @@ class TodoController {
                 if (req.file && req.file.filename) {
                     photo = `/public/data/uploads/${req.file.filename}`;
                 }
-                // Gestion du champ vocal - Upload sur Cloudinary
                 let vocal = null;
                 if (req.files) {
                     const files = req.files;
@@ -100,8 +99,21 @@ class TodoController {
                 else {
                     console.log("req.files est undefined");
                 }
+                // Gestion du temps d'exécution
+                let tempsExecution = 0;
+                if (req.body.tempsExecution) {
+                    tempsExecution = Number(req.body.tempsExecution);
+                    if (isNaN(tempsExecution) || tempsExecution <= 0) {
+                        return res.status(400).json({
+                            message: "tempsExecution doit être un nombre positif (en secondes)",
+                        });
+                    }
+                }
+                else {
+                    return res.status(400).json({ message: "tempsExecution est requis" });
+                }
                 const todoData = Object.assign(Object.assign({}, data), { description: data.description === undefined ? null : data.description, userId: req.userId, photo,
-                    vocal, estAcheve: false, status: client_1.Statut.EN_ATTENTE });
+                    vocal, estAcheve: false, status: client_1.Statut.EN_ATTENTE, tempsExecution, dateDebut: null });
                 console.log("Données à enregistrer:", Object.assign(Object.assign({}, todoData), { vocal: vocal ? "URL_VOCAL_PRESENT" : null }));
                 const todo = yield this.service.create(todoData);
                 console.log("Tâche créée avec vocal:", todo.vocal ? "OUI" : "NON");
@@ -186,7 +198,18 @@ class TodoController {
                         }
                     }
                 }
-                const updated = yield this.service.update(+id, Object.assign(Object.assign({}, data), { photo, vocal }));
+                // Gestion de la modification du temps d'exécution
+                let updateData = Object.assign(Object.assign({}, data), { photo, vocal });
+                if (req.body.tempsExecution) {
+                    const tempsExecution = Number(req.body.tempsExecution);
+                    if (isNaN(tempsExecution) || tempsExecution <= 0) {
+                        return res.status(400).json({
+                            message: "tempsExecution doit être un nombre positif (en secondes)",
+                        });
+                    }
+                    updateData.tempsExecution = tempsExecution;
+                }
+                const updated = yield this.service.update(+id, updateData);
                 res.locals.todoId = +id;
                 res.status(200).json({ message: "Tache modifiée", data: updated });
             }

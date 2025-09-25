@@ -53,6 +53,8 @@ async function main() {
           description: `Description de la tâche ${taskIndex}`,
           estAcheve: false,
           userId: user.id,
+          tempsExecution: 3600, // 1h par défaut
+          dateDebut: null,
         },
       });
       taskIndex++;

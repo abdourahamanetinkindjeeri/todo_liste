@@ -62,6 +62,13 @@ class TodoRepository {
                     data: { status, estAcheve: true },
                 });
             }
+            // Si le statut devient "en_cours", on met à jour la dateDebut
+            if (status === "EN_COURS") {
+                return this.prisma.todo.update({
+                    where: { id },
+                    data: { status, estAcheve: false, dateDebut: new Date() },
+                });
+            }
             return this.prisma.todo.update({
                 where: { id },
                 data: { status, estAcheve: false },

@@ -76,7 +76,6 @@ export default class TodoController {
         photo = `/public/data/uploads/${req.file.filename}`;
       }
 
-      // Gestion du champ vocal - Upload sur Cloudinary
       let vocal: string | null = null;
       if (req.files) {
         const files = req.files as {
@@ -113,6 +112,19 @@ export default class TodoController {
         console.log("req.files est undefined");
       }
 
+      // Gestion du temps d'exécution
+      let tempsExecution = 0;
+      if (req.body.tempsExecution) {
+        tempsExecution = Number(req.body.tempsExecution);
+        if (isNaN(tempsExecution) || tempsExecution <= 0) {
+          return res.status(400).json({
+            message: "tempsExecution doit être un nombre positif (en secondes)",
+          });
+        }
+      } else {
+        return res.status(400).json({ message: "tempsExecution est requis" });
+      }
+
       const todoData = {
         ...data,
         description: data.description === undefined ? null : data.description,
@@ -121,6 +133,8 @@ export default class TodoController {
         vocal,
         estAcheve: false,
         status: Statut.EN_ATTENTE,
+        tempsExecution,
+        dateDebut: null,
       };
       console.log("Données à enregistrer:", {
         ...todoData,
@@ -221,7 +235,18 @@ export default class TodoController {
         }
       }
 
-      const updated = await this.service.update(+id, { ...data, photo, vocal });
+      // Gestion de la modification du temps d'exécution
+      let updateData: any = { ...data, photo, vocal };
+      if (req.body.tempsExecution) {
+        const tempsExecution = Number(req.body.tempsExecution);
+        if (isNaN(tempsExecution) || tempsExecution <= 0) {
+          return res.status(400).json({
+            message: "tempsExecution doit être un nombre positif (en secondes)",
+          });
+        }
+        updateData.tempsExecution = tempsExecution;
+      }
+      const updated = await this.service.update(+id, updateData);
       res.locals.todoId = +id;
       res.status(200).json({ message: "Tache modifiée", data: updated });
     } catch (error) {

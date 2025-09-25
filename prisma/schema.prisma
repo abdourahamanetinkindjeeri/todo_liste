@@ -32,6 +32,8 @@ model Todo {
   photo String?
   vocal String?
   histories TodoHistory[]
+  tempsExecution Int @default(0) // durée prévue en secondes
+  dateDebut DateTime? // date de début réelle
 }
 
 model User {
