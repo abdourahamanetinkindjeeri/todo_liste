@@ -13,6 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const TodoRepository_js_1 = __importDefault(require("../repositories/TodoRepository.js"));
+const TodoHistoryRepository_js_1 = require("../repositories/TodoHistoryRepository.js");
 class TodoService {
     constructor() {
         this.repository = new TodoRepository_js_1.default();
@@ -60,6 +61,12 @@ class TodoService {
     completeTodo(id) {
         return __awaiter(this, void 0, void 0, function* () {
             return this.repository.completeTodo(id);
+        });
+    }
+    // Marquer toutes les notifications non lues comme lues pour un utilisateur
+    markAllNotificationsAsReadForUser(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return TodoHistoryRepository_js_1.TodoHistoryRepository.markAllAsReadForUser(userId);
         });
     }
 }

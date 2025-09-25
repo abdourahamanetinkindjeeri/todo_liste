@@ -32,8 +32,8 @@ model Todo {
   photo String?
   vocal String?
   histories TodoHistory[]
-  tempsExecution Int @default(0) // durée prévue en secondes
-  dateDebut DateTime? // date de début réelle
+  tempsExecution Int @default(0) 
+  dateDebut DateTime?
 }
 
 model User {
@@ -52,9 +52,9 @@ model User {
 
 model TaskDelegation {
   id        Int    @id @default(autoincrement())
-  todo      Todo   @relation(fields: [todoId], references: [id])
+  todo      Todo   @relation(fields: [todoId], references: [id], onDelete: Cascade)
   todoId    Int
-  user      User   @relation(fields: [userId], references: [id])
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    Int
 }
 
@@ -63,8 +63,9 @@ model TodoHistory {
   todoId        Int
   userId        Int
   action        String
+  estLu         Boolean @default(false)
   description   String?
   createdAt     DateTime @default(now())
-  todo          Todo     @relation(fields: [todoId], references: [id])
-  user          User     @relation(fields: [userId], references: [id])
+  todo          Todo     @relation(fields: [todoId], references: [id], onDelete: Cascade)
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

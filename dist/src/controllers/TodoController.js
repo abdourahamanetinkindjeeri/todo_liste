@@ -21,6 +21,28 @@ const TodoHistoryRepository_js_1 = require("../repositories/TodoHistoryRepositor
 class TodoController {
     constructor() {
         this.service = new TodoService_js_1.default();
+        // Marquer toutes les notifications non lues comme lues pour un utilisateur
+        this.readAllNotifications = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { userId } = req.params;
+                if (isNaN(+userId)) {
+                    return res.status(400).json({ message: "userId invalide" });
+                }
+                const updated = yield this.service.markAllNotificationsAsReadForUser(+userId);
+                res.status(200).json({
+                    message: `${updated.count} notifications marquées comme lues`,
+                    updatedCount: updated.count,
+                });
+                return next();
+            }
+            catch (error) {
+                console.error(error);
+                res
+                    .status(500)
+                    .json({ error: "Impossible de mettre à jour les notifications" });
+                next(error);
+            }
+        });
         this.getHistory = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = req.params;

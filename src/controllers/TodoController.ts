@@ -15,6 +15,35 @@ import { TodoHistoryRepository } from "../repositories/TodoHistoryRepository.js"
 
 export default class TodoController {
   private service: TodoService = new TodoService();
+
+  // Marquer toutes les notifications non lues comme lues pour un utilisateur
+  readAllNotifications = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ) => {
+    try {
+      const { userId } = req.params;
+      if (isNaN(+userId)) {
+        return res.status(400).json({ message: "userId invalide" });
+      }
+      const updated = await this.service.markAllNotificationsAsReadForUser(
+        +userId
+      );
+      res.status(200).json({
+        message: `${updated.count} notifications marquées comme lues`,
+        updatedCount: updated.count,
+      });
+      return next();
+    } catch (error) {
+      console.error(error);
+      res
+        .status(500)
+        .json({ error: "Impossible de mettre à jour les notifications" });
+      next(error);
+    }
+  };
+
   getHistory = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;

@@ -22,6 +22,15 @@ class TodoHistoryRepository {
             });
         });
     }
+    // Marquer toutes les notifications non lues comme lues pour un utilisateur
+    static markAllAsReadForUser(userId) {
+        return __awaiter(this, void 0, void 0, function* () {
+            return prisma.todoHistory.updateMany({
+                where: { userId, estLu: false },
+                data: { estLu: true },
+            });
+        });
+    }
     static log(_a) {
         return __awaiter(this, arguments, void 0, function* ({ todoId, userId, action, description, }) {
             return prisma.todoHistory.create({

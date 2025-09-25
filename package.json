@@ -21,6 +21,7 @@
     "@types/multer": "^2.0.0",
     "@types/node": "^24.3.1",
     "prisma": "^6.15.0",
+    "prisma-erd": "^0.1.1",
     "ts-node": "^10.9.2",
     "ts-node-dev": "^2.0.0",
     "tsx": "^4.20.5",

@@ -74,9 +74,7 @@ router.patch(
   auditTodoAction("MODIFICATION")
 );
 
-router.put(
-  "/:id/delegate",
-  controller.delegate,
-  auditTodoAction("DELEGATION")
-);
+router.put("/:id/delegate", controller.delegate, auditTodoAction("DELEGATION"));
+// Marque lu
+router.put("/:userId/readAll", controller.readAllNotifications);
 export default router;

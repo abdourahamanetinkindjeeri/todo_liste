@@ -2,6 +2,7 @@ import { Todo } from "@prisma/client";
 import IRepository from "../repositories/IRepository.js";
 import TodoRepository from "../repositories/TodoRepository.js";
 import { Status } from "../repositories/ITodoRepository.js";
+import { TodoHistoryRepository } from "../repositories/TodoHistoryRepository.js";
 
 export default class TodoService implements IRepository<Todo> {
   private repository: TodoRepository;
@@ -39,5 +40,9 @@ export default class TodoService implements IRepository<Todo> {
 
   async completeTodo(id: number): Promise<Todo> {
     return this.repository.completeTodo(id);
+  }
+  // Marquer toutes les notifications non lues comme lues pour un utilisateur
+  async markAllNotificationsAsReadForUser(userId: number) {
+    return TodoHistoryRepository.markAllAsReadForUser(userId);
   }
 }

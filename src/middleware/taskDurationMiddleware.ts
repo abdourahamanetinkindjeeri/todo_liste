@@ -6,13 +6,9 @@
 //   res: Response,
 //   next: NextFunction
 // ) => {
-//   try {
 //     const todoId = req.params.id;
 //     if (!todoId) {
-//       return res.status(400).json({ error: "ID de la tâche manquant." });
-//     }
-
-//     const todoRepo = new TodoRepository();
+// Suppression de la gestion de dateDebut (champ supprimé du modèle)
 //     const todo = await todoRepo.findById(Number(todoId));
 //     if (!todo) {
 //       return res.status(404).json({ error: "Tâche non trouvée." });
@@ -26,7 +22,6 @@
 //       todo.status === "EN_COURS" &&
 //       todo.dateDebut &&
 //       todo.tempsExecution > 0
-//     ) {
 //       const dateDebutSec = Math.floor(
 //         new Date(todo.dateDebut).getTime() / 1000
 //       );
@@ -105,61 +100,22 @@ export const taskProgressMiddleware = async (
     const maintenantSec = Math.floor(Date.now() / 1000);
 
     // --- Cas EN_COURS ---
-    if (
-      todo.status === "EN_COURS" &&
-      todo.dateDebut &&
-      todo.tempsExecution > 0
-    ) {
-      const dateDebutSec = Math.floor(
-        new Date(todo.dateDebut).getTime() / 1000
-      );
-
-      // Temps écoulé
-      const tempsEcoule = maintenantSec - dateDebutSec;
-
-      let tempsRestant = todo.tempsExecution - tempsEcoule;
-
-      if (tempsRestant <= 0) {
-        // La tâche est terminée
-        await todoRepo.update(todo.id, {
-          status: "TERMINEE",
-          estAcheve: true,
-          tempsExecution: 0,
-        });
-        res.locals.progression = { tempsRestant: 0, status: "TERMINEE" };
-      } else {
-        // Mettre à jour le temps restant
-        await todoRepo.update(todo.id, {
-          tempsExecution: tempsRestant,
-          dateDebut: new Date(), // reset pour continuer le suivi
-        });
-        res.locals.progression = { tempsRestant, status: "EN_COURS" };
-      }
+    if (todo.status === "EN_COURS" && todo.tempsExecution > 0) {
+      // Ici, on ne gère plus la dateDebut
+      // Vous pouvez adapter la logique selon vos besoins
+      res.locals.progression = {
+        tempsRestant: todo.tempsExecution,
+        status: "EN_COURS",
+      };
       return next();
     }
 
     // --- Cas EN_ATTENTE ---
-    if (
-      todo.status === "EN_ATTENTE" &&
-      todo.dateDebut &&
-      todo.tempsExecution > 0
-    ) {
-      const dateDebutSec = Math.floor(
-        new Date(todo.dateDebut).getTime() / 1000
-      );
-      const tempsEcoule = maintenantSec - dateDebutSec;
-
-      let tempsRestant = todo.tempsExecution - tempsEcoule;
-
-      if (tempsRestant < 0) tempsRestant = 0;
-
-      // On "gèle" le temps restant
-      await todoRepo.update(todo.id, {
-        tempsExecution: tempsRestant,
-        dateDebut: null, // reset car on est en pause
-      });
-
-      res.locals.progression = { tempsRestant, status: "EN_ATTENTE" };
+    if (todo.status === "EN_ATTENTE") {
+      res.locals.progression = {
+        tempsRestant: todo.tempsExecution,
+        status: "EN_ATTENTE",
+      };
       return next();
     }
 

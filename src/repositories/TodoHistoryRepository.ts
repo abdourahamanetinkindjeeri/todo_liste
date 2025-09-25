@@ -10,6 +10,15 @@ export class TodoHistoryRepository {
       include: { user: true },
     });
   }
+
+  // Marquer toutes les notifications non lues comme lues pour un utilisateur
+  static async markAllAsReadForUser(userId: number) {
+    return prisma.todoHistory.updateMany({
+      where: { userId, estLu: false },
+      data: { estLu: true },
+    });
+  }
+
   static async log({
     todoId,
     userId,

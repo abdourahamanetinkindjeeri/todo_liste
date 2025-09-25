@@ -32,4 +32,6 @@ router.get("/:id/history", controller.getHistory);
 router.put("/:id", multiUpload_js_1.multiUpload, multiUpload_js_1.handlePhotoUpload, controller.update, (0, auditTodo_js_1.auditTodoAction)("MODIFICATION"));
 router.patch("/:id", multiUpload_js_1.multiUpload, multiUpload_js_1.handlePhotoUpload, controller.update, (0, auditTodo_js_1.auditTodoAction)("MODIFICATION"));
 router.put("/:id/delegate", controller.delegate, (0, auditTodo_js_1.auditTodoAction)("DELEGATION"));
+// Marque lu
+router.put("/:userId/readAll", controller.readAllNotifications);
 exports.default = router;
