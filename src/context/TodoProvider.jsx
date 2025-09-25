@@ -10,6 +10,8 @@ export function TodoProvider({ children }) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState(null);
   const [showAllTodos, setShowAllTodos] = useState(false); // Par défaut, seules les tâches de l'utilisateur
+  const [notifications, setNotifications] = useState([]);
+  const [isLoadingNotifications, setIsLoadingNotifications] = useState(false);
 
   const getAuthHeaders = useCallback(
     () => ({
@@ -25,6 +27,36 @@ export function TodoProvider({ children }) {
     }),
     [accessToken]
   );
+
+  // Récupérer l'historique des tâches (notifications)
+  const fetchNotifications = useCallback(async () => {
+    if (!accessToken || !user?.id) return;
+    setIsLoadingNotifications(true);
+    setError(null);
+    try {
+      const response = await fetch(
+        `http://localhost:8888/todos/${user.id}/history`,
+        {
+          headers: getAuthHeaders(),
+        }
+      );
+      if (response.ok) {
+        const responseData = await response.json();
+        // L'API retourne {message: "...", data: [...]} ou directement un tableau
+        const notifArray = responseData.data || responseData;
+        setNotifications(Array.isArray(notifArray) ? notifArray : []);
+      } else {
+        const errorText = await response.text();
+        setError(
+          `Erreur notifications ${response.status}: ${response.statusText}`
+        );
+      }
+    } catch (err) {
+      setError("Impossible de contacter le serveur (notifications)");
+    } finally {
+      setIsLoadingNotifications(false);
+    }
+  }, [accessToken, user, getAuthHeaders]);
 
   // Récupérer tous les todos
   const fetchTodos = useCallback(async () => {
@@ -139,69 +171,77 @@ export function TodoProvider({ children }) {
   // };
 
   const createTodo = async (todoData) => {
-  setError(null);
-  try {
-    const formData = new FormData();
-    formData.append("libelle", todoData.titre);
-    if (todoData.description) {
-      formData.append("description", todoData.description);
-    }
-    if (todoData.photo) {
-      // Ajoute le nom du fichier si disponible
-      formData.append("photo", todoData.photo, todoData.photo.name || "photo.jpg");
-    }
-    if (todoData.vocal) {
-      // Ajoute le nom du fichier pour le blob ou le fichier
-      formData.append("vocal", todoData.vocal, todoData.vocal.name || "vocal.webm");
-    }
-    // Ajoute les autres champs si besoin
-    if (todoData.dateFin) {
-      formData.append("dateFin", todoData.dateFin);
-    }
-    if (todoData.duree) {
-      formData.append("duree", todoData.duree);
-    }
-
-    console.log("Création todo avec données:", {
-      libelle: todoData.titre,
-      description: todoData.description,
-      hasPhoto: !!todoData.photo,
-      hasVocal: !!todoData.vocal,
-    });
-
-    const response = await fetch("http://localhost:8888/todos", {
-      method: "POST",
-      headers: getAuthHeadersMultipart(),
-      body: formData,
-    });
-
-    if (response.ok) {
-      const responseData = await response.json();
-      const newTodo = responseData.data || responseData;
-      setTodos((prev) => [...prev, newTodo]);
-      // Rafraîchir la liste après ajout
-      await fetchTodos();
-      return { success: true, data: newTodo };
-    } else {
-      const errorText = await response.text();
-      let errorMessage = `Erreur ${response.status}: ${response.statusText}`;
-      try {
-        const errorData = JSON.parse(errorText);
-        errorMessage = errorData.message || errorMessage;
-      } catch {
-        errorMessage = errorText.includes("<!DOCTYPE")
-          ? 'Erreur serveur - Vérifiez que le backend attend "libelle" au lieu de "titre"'
-          : errorText;
+    setError(null);
+    try {
+      const formData = new FormData();
+      formData.append("libelle", todoData.titre);
+      if (todoData.description) {
+        formData.append("description", todoData.description);
       }
+      if (todoData.photo) {
+        // Ajoute le nom du fichier si disponible
+        formData.append(
+          "photo",
+          todoData.photo,
+          todoData.photo.name || "photo.jpg"
+        );
+      }
+      if (todoData.vocal) {
+        // Ajoute le nom du fichier pour le blob ou le fichier
+        formData.append(
+          "vocal",
+          todoData.vocal,
+          todoData.vocal.name || "vocal.webm"
+        );
+      }
+      // Ajoute les autres champs si besoin
+      if (todoData.dateFin) {
+        formData.append("dateFin", todoData.dateFin);
+      }
+      if (todoData.duree) {
+        formData.append("duree", todoData.duree);
+      }
+
+      console.log("Création todo avec données:", {
+        libelle: todoData.titre,
+        description: todoData.description,
+        hasPhoto: !!todoData.photo,
+        hasVocal: !!todoData.vocal,
+      });
+
+      const response = await fetch("http://localhost:8888/todos", {
+        method: "POST",
+        headers: getAuthHeadersMultipart(),
+        body: formData,
+      });
+
+      if (response.ok) {
+        const responseData = await response.json();
+        const newTodo = responseData.data || responseData;
+        setTodos((prev) => [...prev, newTodo]);
+        // Rafraîchir la liste après ajout
+        await fetchTodos();
+        return { success: true, data: newTodo };
+      } else {
+        const errorText = await response.text();
+        let errorMessage = `Erreur ${response.status}: ${response.statusText}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage = errorData.message || errorMessage;
+        } catch {
+          errorMessage = errorText.includes("<!DOCTYPE")
+            ? 'Erreur serveur - Vérifiez que le backend attend "libelle" au lieu de "titre"'
+            : errorText;
+        }
+        setError(errorMessage);
+        return { success: false, error: errorMessage };
+      }
+    } catch (err) {
+      const errorMessage = "Impossible de contacter le serveur " + err;
       setError(errorMessage);
       return { success: false, error: errorMessage };
     }
-  } catch (err) {
-    const errorMessage = "Impossible de contacter le serveur " + err;
-    setError(errorMessage);
-    return { success: false, error: errorMessage };
-  }
-};
+  };
   // Mettre à jour un todo
   const updateTodo = async (id, todoData) => {
     setError(null);
@@ -539,6 +579,9 @@ export function TodoProvider({ children }) {
     delegateTodo,
     // removeDelegation,
     TODO_STATUSES,
+    notifications,
+    isLoadingNotifications,
+    fetchNotifications,
   };
 
   return (

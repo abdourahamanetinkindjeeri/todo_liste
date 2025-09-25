@@ -708,7 +708,7 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
 
         {console.log(`Vocal : ${formData.vocal}`)}
         {/* Date fin */}
-        <div className="space-y-1">
+        {/* <div className="space-y-1">
           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
             Date fin tâche (optionnel)
           </label>
@@ -728,7 +728,7 @@ const SimpleCreateTodoForm = ({ onClose, onSuccess }) => {
               {errors.dateFin}
             </p>
           )}
-        </div>
+        </div> */}
 
         {/* Durée */}
         <div className="space-y-1">
