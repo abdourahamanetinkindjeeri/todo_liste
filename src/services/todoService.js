@@ -39,6 +39,11 @@ export class TodoService {
       formData.append('photo', todoData.photo);
     }
 
+     if (todoData.tempsExecution) {
+      formData.append('tempsExecution', todoData.tempsExecution);
+    }
+    
+
     const response = await apiClient.post(API_ENDPOINTS.TODOS.BASE, formData);
     return response;
   }

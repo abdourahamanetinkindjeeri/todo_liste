@@ -48,11 +48,11 @@ export function TodoProvider({ children }) {
       } else {
         const errorText = await response.text();
         setError(
-          `Erreur notifications ${response.status}: ${response.statusText}`
+          `Erreur notifications ${response.status}: ${response.statusText} ${errorText}`
         );
       }
     } catch (err) {
-      setError("Impossible de contacter le serveur (notifications)");
+      setError("Impossible de contacter le serveur (notifications) " + err);
     } finally {
       setIsLoadingNotifications(false);
     }
@@ -198,8 +198,8 @@ export function TodoProvider({ children }) {
       if (todoData.dateFin) {
         formData.append("dateFin", todoData.dateFin);
       }
-      if (todoData.duree) {
-        formData.append("duree", todoData.duree);
+      if (todoData.tempsExecution) {
+        formData.append("tempsExecution", todoData.tempsExecution);
       }
 
       console.log("Création todo avec données:", {
@@ -252,7 +252,24 @@ export function TodoProvider({ children }) {
         formData.append("description", todoData.description);
       }
       if (todoData.photo) {
-        formData.append("photo", todoData.photo);
+        formData.append(
+          "photo",
+          todoData.photo,
+          todoData.photo.name || "photo.jpg"
+        );
+      }
+      if (todoData.vocal) {
+        formData.append(
+          "vocal",
+          todoData.vocal,
+          todoData.vocal.name || "vocal.webm"
+        );
+      }
+      if (todoData.dateFin) {
+        formData.append("dateFin", todoData.dateFin);
+      }
+      if (todoData.tempsExecution) {
+        formData.append("tempsExecution", todoData.tempsExecution);
       }
       const response = await fetch(`http://localhost:8888/todos/${id}`, {
         method: "PUT",
