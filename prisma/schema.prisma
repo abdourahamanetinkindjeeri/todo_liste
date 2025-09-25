@@ -30,6 +30,7 @@ model Todo {
   user User @relation(fields: [userId], references: [id])
   delegations TaskDelegation[]
   photo String?
+  vocal String?
   histories TodoHistory[]
 }
 

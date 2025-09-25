@@ -1,5 +1,6 @@
 import { Statut } from "@prisma/client";
 import TodoService from "../services/TodoService.js";
+import { CloudinaryService } from "../services/CloudinaryService.js";
 import path from "path";
 
 import {
@@ -68,24 +69,69 @@ export default class TodoController {
       if (typeof req.userId !== "number") {
         return res.status(401).json({ message: "Utilisateur non authentifié" });
       }
+
       // Gestion du champ photo
       let photo: string | null = null;
       if (req.file && req.file.filename) {
         photo = `/public/data/uploads/${req.file.filename}`;
       }
+
+      // Gestion du champ vocal - Upload sur Cloudinary
+      let vocal: string | null = null;
+      if (req.files) {
+        const files = req.files as {
+          [fieldname: string]: Express.Multer.File[];
+        };
+        if (files.vocal && files.vocal[0]) {
+          console.log(
+            "Fichier vocal reçu:",
+            files.vocal[0].originalname,
+            "Taille:",
+            files.vocal[0].size
+          );
+          try {
+            const uploadResult = await CloudinaryService.uploadVocal(
+              files.vocal[0].buffer,
+              req.userId,
+              "create"
+            );
+            vocal = uploadResult.url;
+            console.log("Vocal uploadé avec succès:", vocal);
+          } catch (uploadError) {
+            console.error("Erreur upload vocal:", uploadError);
+            return res.status(400).json({
+              error:
+                uploadError instanceof Error
+                  ? uploadError.message
+                  : "Erreur lors de l'upload du fichier vocal",
+            });
+          }
+        } else {
+          console.log("Aucun fichier vocal trouvé dans req.files");
+        }
+      } else {
+        console.log("req.files est undefined");
+      }
+
       const todoData = {
         ...data,
         description: data.description === undefined ? null : data.description,
         userId: req.userId,
         photo,
+        vocal,
         estAcheve: false,
         status: Statut.EN_ATTENTE,
       };
+      console.log("Données à enregistrer:", {
+        ...todoData,
+        vocal: vocal ? "URL_VOCAL_PRESENT" : null,
+      });
       const todo = await this.service.create(todoData);
+      console.log("Tâche créée avec vocal:", todo.vocal ? "OUI" : "NON");
       res.locals.todoId = todo.id;
       res.status(201).json({
         message: "Tache ajoutée avec succès.",
-        todo: { ...todo, photo },
+        todo: { ...todo, photo, vocal },
       });
     } catch (err) {
       next(err);
@@ -142,7 +188,40 @@ export default class TodoController {
       if (req.file && req.file.filename) {
         photo = `/public/data/uploads/${req.file.filename}`;
       }
-      const updated = await this.service.update(+id, { ...data, photo });
+
+      // Gestion du champ vocal - Upload sur Cloudinary
+      let vocal: string | undefined | null = todo.vocal;
+      if ((req as any).vocalFile) {
+        vocal = (req as any).vocalFile.url;
+      } else if (req.files) {
+        const files = req.files as {
+          [fieldname: string]: Express.Multer.File[];
+        };
+        if (files.vocal && files.vocal[0]) {
+          try {
+            // Supprimer l'ancien vocal si il existe
+            if (todo.vocal) {
+              const oldPublicId = CloudinaryService.extractPublicId(todo.vocal);
+              if (oldPublicId) {
+                await CloudinaryService.deleteFile(oldPublicId, "video");
+              }
+            }
+
+            const uploadResult = await CloudinaryService.uploadVocal(
+              files.vocal[0].buffer,
+              req.userId,
+              "update"
+            );
+            vocal = uploadResult.url;
+          } catch (uploadError) {
+            console.error("Erreur upload vocal:", uploadError);
+            // Garder l'ancien vocal en cas d'erreur
+            vocal = todo.vocal;
+          }
+        }
+      }
+
+      const updated = await this.service.update(+id, { ...data, photo, vocal });
       res.locals.todoId = +id;
       res.status(200).json({ message: "Tache modifiée", data: updated });
     } catch (error) {
@@ -163,6 +242,20 @@ export default class TodoController {
             "Accès interdit : vous n'êtes pas le créateur de cette tâche.",
         });
       }
+
+      // Supprimer le fichier vocal de Cloudinary si il existe
+      if (todo.vocal) {
+        try {
+          const publicId = CloudinaryService.extractPublicId(todo.vocal);
+          if (publicId) {
+            await CloudinaryService.deleteFile(publicId, "video");
+          }
+        } catch (deleteError) {
+          console.error("Erreur suppression vocal Cloudinary:", deleteError);
+          // Continuer même si la suppression échoue
+        }
+      }
+
       await this.service.delete(+id);
       res.locals.todoId = +id;
       res.status(200).json({ message: "Tache supprimée avec succès." });
