@@ -164,12 +164,41 @@ const SimpleTodoCard = ({ todo, onEdit, showNotification }) => {
     );
   }
 
+  // Définition du style et du texte du badge et de la bordure selon le statut
+  let statusBadge = null;
+  let borderColor = "";
+  let borderStyle = "border-solid";
+  if (todo.statut === TODO_STATUSES.EN_ATTENTE) {
+    statusBadge = (
+      <span className="absolute px-2 py-1 text-xs font-bold text-yellow-900 bg-yellow-400 rounded shadow top-2 right-2">
+        En attente
+      </span>
+    );
+    borderColor = "border-l-8 border-yellow-400";
+  } else if (todo.statut === TODO_STATUSES.EN_COURS) {
+    statusBadge = (
+      <span className="absolute px-2 py-1 text-xs font-bold text-white bg-blue-500 rounded shadow top-2 right-2">
+        En cours
+      </span>
+    );
+    borderColor = "border-l-8 border-blue-500";
+  } else if (todo.statut === TODO_STATUSES.TERMINEE) {
+    statusBadge = (
+      <span className="absolute px-2 py-1 text-xs font-bold text-white bg-green-500 rounded shadow top-2 right-2">
+        Terminée
+      </span>
+    );
+    borderColor = "border-l-8 border-green-500";
+  }
+
   return (
     <div
-      className={`h-full w-full rounded-lg border transition-all duration-200 hover:shadow-md flex flex-col ${
+      className={`relative h-full w-full rounded-lg border ${borderStyle} transition-all duration-200 hover:shadow-md flex flex-col ${
         darkMode ? "bg-gray-800 border-gray-700" : "bg-white border-gray-200"
-      }`}
+      } ${borderColor}`}
     >
+      {/* Badge de statut */}
+      {statusBadge}
       {/* Modal de confirmation suppression */}
       {showDeleteConfirm && (
         <ModalOverlay>
@@ -229,7 +258,7 @@ const SimpleTodoCard = ({ todo, onEdit, showNotification }) => {
       {/* Partie supérieure - Flexible */}
       <div className="flex flex-1 min-h-0">
         {/* Photo - Largeur 1/2 */}
-        <div className="w-1/2 overflow-hidden rounded-tl-lg flex-shrink-0">
+        <div className="flex-shrink-0 w-1/2 overflow-hidden rounded-tl-lg">
           {todo.photo ? (
             <img
               src={`http://localhost:8888/${todo.photo}`}
@@ -254,7 +283,7 @@ const SimpleTodoCard = ({ todo, onEdit, showNotification }) => {
         </div>
 
         {/* Informations principales - Largeur 1/2 */}
-        <div className="flex flex-col justify-between w-1/2 p-3 min-h-0">
+        <div className="flex flex-col justify-between w-1/2 min-h-0 p-3">
           {/* En-tête avec titre et actions */}
           <div className="flex items-start justify-between mb-2">
             <h4
@@ -371,7 +400,7 @@ const SimpleTodoCard = ({ todo, onEdit, showNotification }) => {
       </div>
 
       {/* Partie inférieure - Flexible */}
-      <div className="flex flex-col p-3 flex-1 min-h-0">
+      <div className="flex flex-col flex-1 min-h-0 p-3">
         {/* Description */}
         <div className="flex-1 mb-2">
           {todo.description && (
